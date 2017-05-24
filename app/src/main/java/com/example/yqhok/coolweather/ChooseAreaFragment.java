@@ -2,9 +2,7 @@ package com.example.yqhok.coolweather;
 
 import android.os.Bundle;
 import android.support.annotation.Nullable;
-import android.view.LayoutInflater;
 import android.view.View;
-import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.ListView;
@@ -74,16 +72,11 @@ public class ChooseAreaFragment extends BaseFragment<FragmentChooseAreaBinding> 
     private int currentLevel;
 
     @Override
-    public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
-        //initView();
-        return super.onCreateView(inflater, container, savedInstanceState);
-    }
-
-    @Override
     public void onActivityCreated(@Nullable Bundle savedInstanceState) {
         super.onActivityCreated(savedInstanceState);
+        initView();
         getActivity().setTitle("");
-        //queryProvinces();
+        queryProvinces();
     }
 
     @Override
@@ -92,11 +85,10 @@ public class ChooseAreaFragment extends BaseFragment<FragmentChooseAreaBinding> 
     }
 
     private void initView() {
-
-    }
-
-    private void initData() {
-
+        listView = bindingView.listView;
+        listView.setOnItemClickListener(this);
+        adapter = new ArrayAdapter<>(getContext(), android.R.layout.simple_list_item_1, dataList);
+        listView.setAdapter(adapter);
     }
 
     @Override
@@ -107,6 +99,8 @@ public class ChooseAreaFragment extends BaseFragment<FragmentChooseAreaBinding> 
         } else if (currentLevel == LEVEL_CITY) {
             selectedCity = cityList.get(position);
             queryCounties();
+        } else if (currentLevel == LEVEL_COUNTY) {
+            String weatherId = countyList.get(position).getWeatherId();
         }
     }
 
