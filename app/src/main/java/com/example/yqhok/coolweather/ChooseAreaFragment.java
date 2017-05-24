@@ -75,14 +75,15 @@ public class ChooseAreaFragment extends BaseFragment<FragmentChooseAreaBinding> 
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
-        initView();
+        //initView();
         return super.onCreateView(inflater, container, savedInstanceState);
     }
 
     @Override
     public void onActivityCreated(@Nullable Bundle savedInstanceState) {
         super.onActivityCreated(savedInstanceState);
-        queryProvinces();
+        getActivity().setTitle("");
+        //queryProvinces();
     }
 
     @Override
@@ -91,9 +92,11 @@ public class ChooseAreaFragment extends BaseFragment<FragmentChooseAreaBinding> 
     }
 
     private void initView() {
-        getActivity().setTitle("");
-        listView = bindingView.listView;
-        listView.setOnItemClickListener(this);
+
+    }
+
+    private void initData() {
+
     }
 
     @Override
