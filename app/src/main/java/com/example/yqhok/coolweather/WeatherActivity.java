@@ -28,7 +28,7 @@ import okhttp3.Call;
 import okhttp3.Callback;
 import okhttp3.Response;
 
-public class WeatherActivity extends BaseActivity<ActivityWeatherBinding> {
+public class WeatherActivity extends BaseActivity<ActivityWeatherBinding> implements SwipeRefreshLayout.OnRefreshListener{
 
     private ScrollView weatherLayout;
     private TextView degreeText;
@@ -42,6 +42,7 @@ public class WeatherActivity extends BaseActivity<ActivityWeatherBinding> {
     private SwipeRefreshLayout swipeRefreshLayout;
     private ImageView bingPicImg;
     public SwipeRefreshLayout swipeRefresh;
+    private String mWeatherId;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -68,7 +69,7 @@ public class WeatherActivity extends BaseActivity<ActivityWeatherBinding> {
         carWashText = bindingView.suggestion.carWashText;
         sportText = bindingView.suggestion.sportText;
         bingPicImg = bindingView.bingPicImg;
-        swipeRefresh = (SwipeRefreshLayout) findViewById(R.id.swipe_refresh);
+        swipeRefresh = bindingView.swipeRefresh;
     }
 
     private void initData() {
@@ -77,8 +78,10 @@ public class WeatherActivity extends BaseActivity<ActivityWeatherBinding> {
         String weatherString = prefs.getString("weather",null);
         if(weatherString != null) {
             Weather weather = Utility.handleWeatherResponse(weatherString);
+            mWeatherId = weather.basic.weatherId;
             showWeatherInfo(weather);
         } else {
+            mWeatherId = getIntent().getStringExtra("weather_id");
             String weatherId = getIntent().getStringExtra("weather_id");
             requestWeather(weatherId);
         }
@@ -111,6 +114,7 @@ public class WeatherActivity extends BaseActivity<ActivityWeatherBinding> {
                         } else {
                             Toast.makeText(WeatherActivity.this,"获取天气信息失败",Toast.LENGTH_SHORT).show();
                         }
+                        swipeRefresh.setRefreshing(false);
                     }
                 });
             }
@@ -122,6 +126,7 @@ public class WeatherActivity extends BaseActivity<ActivityWeatherBinding> {
                     @Override
                     public void run() {
                         Toast.makeText(WeatherActivity.this,"获取天气信息失败",Toast.LENGTH_SHORT).show();
+                        swipeRefresh.setRefreshing(false);
                     }
                 });
             }
@@ -184,4 +189,8 @@ public class WeatherActivity extends BaseActivity<ActivityWeatherBinding> {
         });
     }
 
+    @Override
+    public void onRefresh() {
+        requestWeather(mWeatherId);
+    }
 }
