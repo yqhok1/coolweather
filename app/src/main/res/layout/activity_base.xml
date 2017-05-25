@@ -1,17 +1,25 @@
 <?xml version="1.0" encoding="utf-8"?>
-<layout xmlns:android="http://schemas.android.com/apk/res/android">
+<layout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
 
-    <FrameLayout xmlns:app="http://schemas.android.com/apk/res-auto"
+    <FrameLayout
         android:id="@+id/root_root"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:background="@color/White">
+        android:baselineAligned="false">
+
+        <ImageView
+            android:id="@+id/root_pic"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:scaleType="centerCrop"
+            android:visibility="invisible" />
 
         <LinearLayout
             android:id="@+id/root"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:background="@color/White"
+            android:fitsSystemWindows="true"
             android:orientation="vertical">
 
             <android.support.v7.widget.Toolbar
@@ -20,7 +28,8 @@
                 android:layout_height="?attr/actionBarSize"
                 android:background="@color/Red"
                 android:theme="@style/ThemeOverlay.AppCompat.Dark.ActionBar"
-                app:popupTheme="@style/AppTheme.PopupOverlay"
+                android:fitsSystemWindows="true"
+                app:popupTheme="@style/ThemeOverlay.AppCompat.Light"
                 app:layout_scrollFlags="scroll|enterAlways|snap"
                 app:layout_collapseMode="pin" />
 

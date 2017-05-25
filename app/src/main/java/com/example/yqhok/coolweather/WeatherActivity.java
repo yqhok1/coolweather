@@ -1,15 +1,20 @@
 package com.example.yqhok.coolweather;
 
+import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.graphics.Color;
 import android.os.Build;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
+import android.support.v4.widget.DrawerLayout;
 import android.support.v4.widget.SwipeRefreshLayout;
+import android.support.v7.app.ActionBarDrawerToggle;
+import android.support.v7.widget.Toolbar;
 import android.view.LayoutInflater;
+import android.view.Menu;
+import android.view.MenuItem;
 import android.view.View;
-import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.ScrollView;
 import android.widget.TextView;
@@ -30,8 +35,9 @@ import okhttp3.Call;
 import okhttp3.Callback;
 import okhttp3.Response;
 
-public class WeatherActivity extends BaseActivity<ActivityWeatherBinding> implements SwipeRefreshLayout.OnRefreshListener{
+public class WeatherActivity extends BaseActivity<ActivityWeatherBinding> implements SwipeRefreshLayout.OnRefreshListener {
 
+    private Toolbar toolbar;
     private ScrollView weatherLayout;
     private TextView degreeText;
     private TextView weatherInfoText;
@@ -41,9 +47,10 @@ public class WeatherActivity extends BaseActivity<ActivityWeatherBinding> implem
     private TextView comfortText;
     private TextView carWashText;
     private TextView sportText;
-    private SwipeRefreshLayout swipeRefreshLayout;
-    private ImageView bingPicImg;
-    public SwipeRefreshLayout swipeRefresh;
+    private SwipeRefreshLayout swipeRefresh;
+    public DrawerLayout drawerLayout;
+    private ActionBarDrawerToggle drawerToggle;
+
     private String mWeatherId;
 
     @Override
@@ -60,7 +67,13 @@ public class WeatherActivity extends BaseActivity<ActivityWeatherBinding> implem
         showContentView();
     }
 
+    public static void start(Context context) {
+        Intent intent = new Intent(context, WeatherActivity.class);
+        context.startActivity(intent);
+    }
+
     private void initView() {
+        toolbar = getToolBar();
         weatherLayout = bindingView.weatherLayout;
         degreeText = bindingView.now.degreeText;
         weatherInfoText = bindingView.now.weatherInfoText;
@@ -70,10 +83,30 @@ public class WeatherActivity extends BaseActivity<ActivityWeatherBinding> implem
         comfortText = bindingView.suggestion.comfortText;
         carWashText = bindingView.suggestion.carWashText;
         sportText = bindingView.suggestion.sportText;
-        bingPicImg = bindingView.bingPicImg;
         swipeRefresh = bindingView.swipeRefresh;
+        drawerLayout = bindingView.drawerLayout;
+        toolbar.setBackgroundResource(R.color.Black);
+        setSupportActionBar(toolbar);
+        getSupportActionBar().setHomeButtonEnabled(true);
+        getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+        drawerToggle = new ActionBarDrawerToggle(this, drawerLayout, R.string.open, R.string.close) {
+            @Override
+            public void onDrawerOpened(View drawerView) {
+                super.onDrawerOpened(drawerView);
+                invalidateOptionsMenu();
+            }
+
+            @Override
+            public void onDrawerClosed(View drawerView) {
+                super.onDrawerClosed(drawerView);
+                invalidateOptionsMenu();
+            }
+        };
+        drawerToggle.syncState();
+        drawerLayout.addDrawerListener(drawerToggle);
         swipeRefresh.setOnRefreshListener(this);
         swipeRefresh.setColorSchemeResources(R.color.Red);
+        getRootPic().setVisibility(View.VISIBLE);
     }
 
     private void initData() {
@@ -90,12 +123,10 @@ public class WeatherActivity extends BaseActivity<ActivityWeatherBinding> implem
         }
         String bingPic = prefs.getString("bing_pic",null);
         if (bingPic != null) {
-            Glide.with(this).load(bingPic).into(bingPicImg);
+            Glide.with(this).load(bingPic).into(getRootPic());
         } else {
             loadBingPic();
         }
-        
-
     }
 
     public void requestWeather(final String weatherId) {
@@ -138,8 +169,10 @@ public class WeatherActivity extends BaseActivity<ActivityWeatherBinding> implem
     }
 
     private void showWeatherInfo(Weather weather) {
+        String cityName = weather.basic.cityName;
         String degree = weather.now.temperature + "℃";
         String weatherInfo = weather.now.more.info;
+        toolbar.setTitle(cityName);
         degreeText.setText(degree);
         weatherInfoText.setText(weatherInfo);
         forecastLayout.removeAllViews();
@@ -182,12 +215,12 @@ public class WeatherActivity extends BaseActivity<ActivityWeatherBinding> implem
             public void onResponse(Call call, Response response) throws IOException {
                 final String bingPic = response.body().string();
                 SharedPreferences.Editor editor = PreferenceManager.getDefaultSharedPreferences(WeatherActivity.this).edit();
-                editor.putString("bing_pic",bingPic);
+                editor.putString("bing_pic", bingPic);
                 editor.apply();
                 runOnUiThread(new Runnable() {
                     @Override
                     public void run() {
-                        Glide.with(WeatherActivity.this).load(bingPic).into(bingPicImg);
+                        Glide.with(WeatherActivity.this).load(bingPic).into(getRootPic());
                     }
                 });
             }
@@ -195,7 +228,36 @@ public class WeatherActivity extends BaseActivity<ActivityWeatherBinding> implem
     }
 
     @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        getMenuInflater().inflate(R.menu.toolbar, menu);
+        return true;
+    }
+
+    @Override
+    public boolean onPrepareOptionsMenu(Menu menu) {
+        return super.onPrepareOptionsMenu(menu);
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        switch (item.getItemId()) {
+            case R.id.action_login:
+                RegisterActivity.start(this);
+                return true;
+            case R.id.settings:
+                return true;
+            default:
+                break;
+        }
+        if (drawerToggle.onOptionsItemSelected(item)) {
+            return true;
+        }
+        return false;
+    }
+
+    @Override
     public void onRefresh() {
         requestWeather(mWeatherId);
     }
+
 }

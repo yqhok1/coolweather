@@ -6,9 +6,12 @@ import android.os.Bundle;
 import android.support.annotation.LayoutRes;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
+import android.support.v7.widget.Toolbar;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.FrameLayout;
+import android.widget.ImageView;
 import android.widget.RelativeLayout;
 
 import com.example.yqhok.coolweather.R;
@@ -42,6 +45,18 @@ public class BaseActivity<SV extends ViewDataBinding> extends AppCompatActivity 
         getWindow().setContentView(mBaseBinding.getRoot());
         setToolBar();
         bindingView.getRoot().setVisibility(View.GONE);
+    }
+
+    protected Toolbar getToolBar() {
+        return mBaseBinding.toolbar;
+    }
+
+    protected ImageView getRootPic() {
+        return mBaseBinding.rootPic;
+    }
+
+    protected FrameLayout getRootRoot() {
+        return mBaseBinding.rootRoot;
     }
 
     protected void setToolBar() {

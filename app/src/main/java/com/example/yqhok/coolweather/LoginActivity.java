@@ -2,6 +2,7 @@ package com.example.yqhok.coolweather;
 
 import android.content.Intent;
 import android.os.Bundle;
+import android.os.CountDownTimer;
 import android.text.Editable;
 import android.text.TextPaint;
 import android.text.TextWatcher;
@@ -34,7 +35,13 @@ import javax.net.ssl.SSLSession;
 import javax.net.ssl.TrustManager;
 import javax.net.ssl.X509TrustManager;
 
+import cn.smssdk.EventHandler;
+import cn.smssdk.OnSendMessageHandler;
+import cn.smssdk.utils.SMSLog;
+
 public class LoginActivity extends BaseActivity<ActivityLoginBinding> implements TextWatcher, View.OnClickListener {
+
+    private static final String DEFAULT_COUNTRY_ID = "42";
 
     private TextView info;
     private TextView hint;
@@ -44,12 +51,24 @@ public class LoginActivity extends BaseActivity<ActivityLoginBinding> implements
     private String strPhone;
     private String strCode;
 
+    private EventHandler eventHandler;
+    private OnSendMessageHandler osmHandler;
+
+    private TimeCount time;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_login);
         initView();
+        initSMS();
         showContentView();
+    }
+
+    @Override
+    protected void onDestroy() {
+        cn.smssdk.SMSSDK.unregisterEventHandler(eventHandler);
+        super.onDestroy();
     }
 
     private void initView() {
@@ -64,6 +83,25 @@ public class LoginActivity extends BaseActivity<ActivityLoginBinding> implements
         TextPaint paint = hint.getPaint();
         paint.setFakeBoldText(true);
         getVerificationCode.setOnClickListener(this);
+        time = new TimeCount(30000, 1000);
+        time.start();
+    }
+
+    private void initSMS() {
+        cn.smssdk.SMSSDK.initSDK(this, "1e2481279d874", "88b7b1d5f46e5063b79146bd7e9e3c07");
+        eventHandler = new EventHandler() {
+            @Override
+            public void afterEvent(int event, int result, Object data) {
+                if (result == cn.smssdk.SMSSDK.RESULT_COMPLETE) {
+                    if (event == cn.smssdk.SMSSDK.EVENT_SUBMIT_VERIFICATION_CODE) {
+
+                    }
+                } else {
+                    ((Throwable)data).printStackTrace();
+                }
+            }
+        };
+        cn.smssdk.SMSSDK.registerEventHandler(eventHandler);
     }
 
     private String checkSMS(String strPhone, String code) {
@@ -188,12 +226,35 @@ public class LoginActivity extends BaseActivity<ActivityLoginBinding> implements
                 if (strCode.length() == 6) {
                     String result = checkSMS(strPhone, strCode);
                     if (parseResult(result)) {
-                        //startActivity
+                        WeatherActivity.start(this);
                     }
                 }
                 break;
             case R.id.get_verification_code:
+                time.start();
+                SMSLog.getInstance().i("verification phone ==>>" + strPhone);
+                cn.smssdk.SMSSDK.getVerificationCode("+" + cn.smssdk.SMSSDK.getCountry(DEFAULT_COUNTRY_ID)[1], strPhone, osmHandler);
                 break;
+        }
+    }
+
+    class TimeCount extends CountDownTimer {
+
+        public TimeCount(long millisInFuture, long countDownInterval) {
+            super(millisInFuture, countDownInterval);
+        }
+
+        @Override
+        public void onTick(long millisUntilFinished) {
+            getVerificationCode.setBackgroundResource(R.color.Gray);
+            getVerificationCode.setClickable(false);
+            getVerificationCode.setText(millisUntilFinished / 1000 + "秒后可重新发送");
+        }
+
+        @Override
+        public void onFinish() {
+            getVerificationCode.setBackgroundResource(R.color.White);
+            getVerificationCode.setClickable(true);
         }
     }
 
