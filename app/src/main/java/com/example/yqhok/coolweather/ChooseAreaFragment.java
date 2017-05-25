@@ -1,5 +1,6 @@
 package com.example.yqhok.coolweather;
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.view.View;
@@ -74,9 +75,11 @@ public class ChooseAreaFragment extends BaseFragment<FragmentChooseAreaBinding> 
     @Override
     public void onActivityCreated(@Nullable Bundle savedInstanceState) {
         super.onActivityCreated(savedInstanceState);
+        showLoading();
         initView();
         getActivity().setTitle("");
         queryProvinces();
+        showContentView();
     }
 
     @Override
@@ -101,6 +104,10 @@ public class ChooseAreaFragment extends BaseFragment<FragmentChooseAreaBinding> 
             queryCounties();
         } else if (currentLevel == LEVEL_COUNTY) {
             String weatherId = countyList.get(position).getWeatherId();
+            Intent intent = new Intent(getActivity(), WeatherActivity.class);
+            intent.putExtra("weather_id", weatherId);
+            startActivity(intent);
+            getActivity().finish();
         }
     }
 
@@ -193,7 +200,7 @@ public class ChooseAreaFragment extends BaseFragment<FragmentChooseAreaBinding> 
                 } else if ("city".equals(type)) {
                     result = Utility.handleCityResponse(responseText, selectedProvince.getId());
                 } else if ("county".equals(type)) {
-                    result = Utility.handleCountyResponse(responseText, selectedCity.getCityCode());
+                    result = Utility.handleCountyResponse(responseText, selectedCity.getId());
                 }
                 if (result) {
                     getActivity().runOnUiThread(new Runnable() {

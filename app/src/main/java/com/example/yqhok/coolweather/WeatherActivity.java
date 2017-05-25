@@ -43,6 +43,7 @@ public class WeatherActivity extends BaseActivity<ActivityWeatherBinding> {
         setContentView(R.layout.activity_weather);
         initView();
         initData();
+        showContentView();
     }
 
     private void initView() {
@@ -59,11 +60,11 @@ public class WeatherActivity extends BaseActivity<ActivityWeatherBinding> {
 
     private void initData() {
         SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(this);
-        String weatherString = prefs.getString("weather",null);
-        if(weatherString != null){
+        String weatherString = prefs.getString("weather", null);
+        if(weatherString != null) {
             Weather weather = Utility.handleWeatherResponse(weatherString);
             showWeatherInfo(weather);
-        }else {
+        } else {
             String weatherId = getIntent().getStringExtra("weather_id");
             requestWeather(weatherId);
         }
@@ -72,7 +73,6 @@ public class WeatherActivity extends BaseActivity<ActivityWeatherBinding> {
     public void requestWeather(final String weatherId) {
         String weatherURL = "http://guolin.tech/api/weather?cityid=" + weatherId + "&key=60e311f001ea4a7693e674f3671cda85";
         HttpUtil.sendOkHttpRequest(weatherURL, new Callback() {
-
             @Override
             public void onResponse(Call call, Response response) throws IOException {
                 final String responseText = response.body().string();
@@ -80,13 +80,13 @@ public class WeatherActivity extends BaseActivity<ActivityWeatherBinding> {
                 runOnUiThread(new Runnable() {
                     @Override
                     public void run() {
-                        if (weather != null && "ok".equals(weather.status)){
+                        if (weather != null && "ok".equals(weather.status)) {
                             SharedPreferences.Editor editor = PreferenceManager.getDefaultSharedPreferences(WeatherActivity.this).edit();
-                            editor.putString("weather",responseText);
+                            editor.putString("weather", responseText);
                             editor.apply();
                             showWeatherInfo(weather);
                         }else {
-                            Toast.makeText(WeatherActivity.this,"获取天气信息失败",Toast.LENGTH_SHORT).show();
+                            Toast.makeText(WeatherActivity.this, "获取天气信息失败", Toast.LENGTH_SHORT).show();
                         }
                     }
                 });
@@ -98,7 +98,7 @@ public class WeatherActivity extends BaseActivity<ActivityWeatherBinding> {
                 runOnUiThread(new Runnable() {
                     @Override
                     public void run() {
-                        Toast.makeText(WeatherActivity.this,"获取天气信息失败",Toast.LENGTH_SHORT).show();
+                        Toast.makeText(WeatherActivity.this, "获取天气信息失败", Toast.LENGTH_SHORT).show();
                     }
                 });
             }
@@ -111,8 +111,8 @@ public class WeatherActivity extends BaseActivity<ActivityWeatherBinding> {
         degreeText.setText(degree);
         weatherInfoText.setText(weatherInfo);
         forecastLayout.removeAllViews();
-        for (Forecast forecast : weather.forecastList){
-            View view = LayoutInflater.from(this).inflate(R.layout.forecast_item,forecastLayout,false);
+        for (Forecast forecast : weather.forecastList) {
+            View view = LayoutInflater.from(this).inflate(R.layout.forecast_item, forecastLayout, false);
             TextView dateText = (TextView)findViewById(R.id.data_text);
             TextView infoText = (TextView)findViewById(R.id.info_text);
             TextView maxText = (TextView)findViewById(R.id.max_text);
@@ -123,7 +123,7 @@ public class WeatherActivity extends BaseActivity<ActivityWeatherBinding> {
             minText.setText(forecast.temperature.min);
             forecastLayout.addView(view);
         }
-        if (weather.aqi != null){
+        if (weather.aqi != null) {
             aqiText.setText(weather.aqi.city.aqi);
             pm25Text.setText(weather.aqi.city.pm25);
         }
@@ -135,5 +135,7 @@ public class WeatherActivity extends BaseActivity<ActivityWeatherBinding> {
         sportText.setText(sport);
         weatherLayout.setVisibility(View.VISIBLE);
     }
+
+
 
 }
