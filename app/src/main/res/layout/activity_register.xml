@@ -14,7 +14,8 @@
             android:layout_marginBottom="53dp"
             android:text="登录以同步您的信息"
             android:gravity="center"
-            android:textSize="18sp"/>
+            android:textSize="18sp"
+            android:textColor="@color/White" />
 
         <LinearLayout
             android:layout_width="match_parent"
@@ -28,7 +29,8 @@
                 android:layout_margin="5dp"
                 android:text="+86"
                 android:gravity="center"
-                android:textSize="18sp" />
+                android:textSize="18sp"
+                android:textColor="@color/White"/>
 
             <EditText
                 android:id="@+id/phone"
@@ -38,6 +40,8 @@
                 android:layout_gravity="center_vertical"
                 android:hint="请输入您的手机号"
                 android:textSize="18sp"
+                android:textColor="@color/White"
+                android:textColorHint="@color/White"
                 android:inputType="phone" />
 
         </LinearLayout>
@@ -52,7 +56,7 @@
             android:text="获取验证码"
             android:gravity="center"
             android:textSize="18sp"
-            android:textColor="@color/White"/>
+            android:textColor="@color/White" />
 
     </LinearLayout>
 </layout>

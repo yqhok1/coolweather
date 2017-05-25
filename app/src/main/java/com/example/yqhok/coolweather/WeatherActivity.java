@@ -47,7 +47,7 @@ public class WeatherActivity extends BaseActivity<ActivityWeatherBinding> implem
     private TextView comfortText;
     private TextView carWashText;
     private TextView sportText;
-    private SwipeRefreshLayout swipeRefresh;
+    public SwipeRefreshLayout swipeRefresh;
     public DrawerLayout drawerLayout;
     private ActionBarDrawerToggle drawerToggle;
 
@@ -65,6 +65,12 @@ public class WeatherActivity extends BaseActivity<ActivityWeatherBinding> implem
         initView();
         initData();
         showContentView();
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        onRefresh();
     }
 
     public static void start(Context context) {
@@ -85,7 +91,7 @@ public class WeatherActivity extends BaseActivity<ActivityWeatherBinding> implem
         sportText = bindingView.suggestion.sportText;
         swipeRefresh = bindingView.swipeRefresh;
         drawerLayout = bindingView.drawerLayout;
-        toolbar.setBackgroundResource(R.color.Black);
+        toolbar.setBackgroundResource(android.R.color.transparent);
         setSupportActionBar(toolbar);
         getSupportActionBar().setHomeButtonEnabled(true);
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
@@ -245,6 +251,7 @@ public class WeatherActivity extends BaseActivity<ActivityWeatherBinding> implem
                 RegisterActivity.start(this);
                 return true;
             case R.id.settings:
+                SettingsActivity.start(this);
                 return true;
             default:
                 break;
