@@ -40,8 +40,13 @@
         </activity>
         <activity
             android:name=".LoginActivity"
-            android:windowSoftInputMode="stateVisible|adjustResize"
-            android:theme="@style/AppTheme"/>
+            android:theme="@style/AppTheme"
+            android:windowSoftInputMode="stateVisible|adjustResize" />
+
+        <service
+            android:name=".service.AutoUpdateService"
+            android:enabled="true"
+            android:exported="true"></service>
     </application>
 
 </manifest>

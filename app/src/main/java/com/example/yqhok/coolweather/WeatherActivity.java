@@ -1,5 +1,6 @@
 package com.example.yqhok.coolweather;
 
+import android.content.Intent;
 import android.content.SharedPreferences;
 import android.graphics.Color;
 import android.os.Build;
@@ -19,6 +20,7 @@ import com.example.yqhok.coolweather.base.BaseActivity;
 import com.example.yqhok.coolweather.databinding.ActivityWeatherBinding;
 import com.example.yqhok.coolweather.gson.Forecast;
 import com.example.yqhok.coolweather.gson.Weather;
+import com.example.yqhok.coolweather.service.AutoUpdateService;
 import com.example.yqhok.coolweather.util.HttpUtil;
 import com.example.yqhok.coolweather.util.Utility;
 
@@ -70,10 +72,11 @@ public class WeatherActivity extends BaseActivity<ActivityWeatherBinding> implem
         sportText = bindingView.suggestion.sportText;
         bingPicImg = bindingView.bingPicImg;
         swipeRefresh = bindingView.swipeRefresh;
+        swipeRefresh.setOnRefreshListener(this);
+        swipeRefresh.setColorSchemeResources(R.color.Red);
     }
 
     private void initData() {
-        swipeRefresh.setColorSchemeResources(R.color.Red);
         SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(this);
         String weatherString = prefs.getString("weather",null);
         if(weatherString != null) {
@@ -163,6 +166,8 @@ public class WeatherActivity extends BaseActivity<ActivityWeatherBinding> implem
         carWashText.setText(carWash);
         sportText.setText(sport);
         weatherLayout.setVisibility(View.VISIBLE);
+        Intent intent = new Intent(this, AutoUpdateService.class);
+        startService(intent);
     }
 
     private void loadBingPic(){
