@@ -3,6 +3,7 @@ package com.example.yqhok.coolweather;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.databinding.DataBindingUtil;
 import android.graphics.Color;
 import android.os.Build;
 import android.os.Bundle;
@@ -23,6 +24,7 @@ import android.widget.Toast;
 import com.bumptech.glide.Glide;
 import com.example.yqhok.coolweather.base.BaseActivity;
 import com.example.yqhok.coolweather.databinding.ActivityWeatherBinding;
+import com.example.yqhok.coolweather.databinding.ForecastItemBinding;
 import com.example.yqhok.coolweather.gson.Forecast;
 import com.example.yqhok.coolweather.gson.Weather;
 import com.example.yqhok.coolweather.service.AutoUpdateService;
@@ -50,6 +52,8 @@ public class WeatherActivity extends BaseActivity<ActivityWeatherBinding> implem
     public SwipeRefreshLayout swipeRefresh;
     public DrawerLayout drawerLayout;
     private ActionBarDrawerToggle drawerToggle;
+
+    private ForecastItemBinding forecastItemBinding;
 
     private String mWeatherId;
 
@@ -183,16 +187,16 @@ public class WeatherActivity extends BaseActivity<ActivityWeatherBinding> implem
         weatherInfoText.setText(weatherInfo);
         forecastLayout.removeAllViews();
         for (Forecast forecast : weather.forecastList){
-            View view = LayoutInflater.from(this).inflate(R.layout.forecast_item,forecastLayout,false);
-            TextView dateText = (TextView) view.findViewById(R.id.data_text);
-            TextView infoText = (TextView) view.findViewById(R.id.info_text);
-            TextView maxText = (TextView) view.findViewById(R.id.max_text);
-            TextView minText = (TextView) view.findViewById(R.id.min_text);
+            forecastItemBinding = DataBindingUtil.inflate(LayoutInflater.from(this), R.layout.forecast_item, forecastLayout, false);
+            TextView dateText = forecastItemBinding.dataText;
+            TextView infoText = forecastItemBinding.infoText;
+            TextView maxText = forecastItemBinding.maxText;
+            TextView minText = forecastItemBinding.minText;
             dateText.setText(forecast.date);
             infoText.setText(forecast.more.info);
             maxText.setText(forecast.temperature.max);
             minText.setText(forecast.temperature.min);
-            forecastLayout.addView(view);
+            forecastLayout.addView(forecastItemBinding.getRoot());
         }
         if (weather.aqi != null) {
             aqiText.setText(weather.aqi.city.aqi);
