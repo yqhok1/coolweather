@@ -1,16 +1,16 @@
 package com.example.yqhok.coolweather;
 
+import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
-import android.support.annotation.Nullable;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.ListView;
 import android.widget.Toast;
 
-import com.example.yqhok.coolweather.base.BaseFragment;
-import com.example.yqhok.coolweather.databinding.FragmentChooseAreaBinding;
+import com.example.yqhok.coolweather.base.BaseActivity;
+import com.example.yqhok.coolweather.databinding.ActivityChooseAreaBinding;
 import com.example.yqhok.coolweather.db.City;
 import com.example.yqhok.coolweather.db.County;
 import com.example.yqhok.coolweather.db.Province;
@@ -27,11 +27,7 @@ import okhttp3.Call;
 import okhttp3.Callback;
 import okhttp3.Response;
 
-/**
- * Created by yqhok on 2017/5/22.
- */
-
-public class ChooseAreaFragment extends BaseFragment<FragmentChooseAreaBinding> implements ListView.OnItemClickListener {
+public class ChooseAreaActivity extends BaseActivity<ActivityChooseAreaBinding> implements ListView.OnItemClickListener {
 
     public static final int LEVEL_PROVINCE = 0;
     public static final int LEVEL_CITY = 1;
@@ -73,24 +69,24 @@ public class ChooseAreaFragment extends BaseFragment<FragmentChooseAreaBinding> 
     private int currentLevel;
 
     @Override
-    public void onActivityCreated(@Nullable Bundle savedInstanceState) {
-        super.onActivityCreated(savedInstanceState);
-        showLoading();
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_choose_area);
         initView();
-        getActivity().setTitle("");
+        setTitle("");
         queryProvinces();
         showContentView();
     }
 
-    @Override
-    public int setContent() {
-        return R.layout.fragment_choose_area;
+    public static void start(Context context) {
+        Intent intent = new Intent(context, ChooseAreaActivity.class);
+        context.startActivity(intent);
     }
 
     private void initView() {
         listView = bindingView.listView;
         listView.setOnItemClickListener(this);
-        adapter = new ArrayAdapter<>(getContext(), android.R.layout.simple_list_item_1, dataList);
+        adapter = new ArrayAdapter<>(this, android.R.layout.simple_list_item_1, dataList);
         listView.setAdapter(adapter);
     }
 
@@ -104,18 +100,10 @@ public class ChooseAreaFragment extends BaseFragment<FragmentChooseAreaBinding> 
             queryCounties();
         } else if (currentLevel == LEVEL_COUNTY) {
             String weatherId = countyList.get(position).getWeatherId();
-            if (getActivity() instanceof HomeActivity) {
-                Intent intent = new Intent(getActivity(), WeatherActivity.class);
-                intent.putExtra("weather_id", weatherId);
-                startActivity(intent);
-                getActivity().finish();
-            } else if (getActivity() instanceof WeatherActivity) {
-                WeatherActivity activity = (WeatherActivity) getActivity();
-                activity.drawerLayout.closeDrawers();
-                activity.swipeRefresh.setRefreshing(true);
-                activity.requestWeather(weatherId);
-                queryProvinces();
-            }
+            Intent intent = new Intent(this, WeatherActivity.class);
+            intent.putExtra("weather_id", weatherId);
+            startActivity(intent);
+            finish();
         }
     }
 
@@ -123,7 +111,7 @@ public class ChooseAreaFragment extends BaseFragment<FragmentChooseAreaBinding> 
      * Query each province prior to database else from server
      */
     private void queryProvinces() {
-        getActivity().setTitle("中国");
+        setTitle("中国");
         provinceList = DataSupport.findAll(Province.class);
         if (provinceList.size() > 0) {
             dataList.clear();
@@ -143,7 +131,7 @@ public class ChooseAreaFragment extends BaseFragment<FragmentChooseAreaBinding> 
      * Query each city prior to database else from server
      */
     private void queryCities() {
-        getActivity().setTitle(selectedProvince.getProvinceName());
+        setTitle(selectedProvince.getProvinceName());
         cityList = DataSupport.where("provinceId = ?", String.valueOf(selectedProvince.getId())).find(City.class);
         if (cityList.size() > 0) {
             dataList.clear();
@@ -164,7 +152,7 @@ public class ChooseAreaFragment extends BaseFragment<FragmentChooseAreaBinding> 
      * Query each county prior to database else from server
      */
     private void queryCounties() {
-        getActivity().setTitle(selectedCity.getCityName());
+        setTitle(selectedCity.getCityName());
         countyList = DataSupport.where("cityId = ?", String.valueOf(selectedCity.getId())).find(County.class);
         if (countyList.size() > 0) {
             dataList.clear();
@@ -186,15 +174,14 @@ public class ChooseAreaFragment extends BaseFragment<FragmentChooseAreaBinding> 
      * Query data according to address and type
      */
     private void queryFromServer(String address, final String type) {
-        showLoading();
         HttpUtil.sendOkHttpRequest(address, new Callback() {
             @Override
             public void onFailure(Call call, IOException e) {
-                getActivity().runOnUiThread(new Runnable() {
+                runOnUiThread(new Runnable() {
                     @Override
                     public void run() {
                         showContentView();
-                        Toast.makeText(getContext(), "加载失败", Toast.LENGTH_SHORT).show();
+                        Toast.makeText(ChooseAreaActivity.this, "加载失败", Toast.LENGTH_SHORT).show();
                     }
                 });
             }
@@ -211,7 +198,7 @@ public class ChooseAreaFragment extends BaseFragment<FragmentChooseAreaBinding> 
                     result = Utility.handleCountyResponse(responseText, selectedCity.getId());
                 }
                 if (result) {
-                    getActivity().runOnUiThread(new Runnable() {
+                    runOnUiThread(new Runnable() {
                         @Override
                         public void run() {
                             showContentView();

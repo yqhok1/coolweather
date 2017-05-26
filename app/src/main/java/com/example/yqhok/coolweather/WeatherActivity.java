@@ -147,7 +147,12 @@ public class WeatherActivity extends BaseActivity<ActivityWeatherBinding> implem
     private void initData() {
         SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(this);
         String weatherString = prefs.getString("weather", null);
-        if (weatherString != null) {
+        Intent intent = getIntent();
+        if (intent.hasExtra("weather_id")) {
+            mWeatherId = getIntent().getStringExtra("weather_id");
+            weatherLayout.setVisibility(View.INVISIBLE);
+            requestWeather(mWeatherId);
+        } else if (weatherString != null) {
             Weather weather = Utility.handleWeatherResponse(weatherString);
             mWeatherId = weather.basic.weatherId;
             showWeatherInfo(weather);
@@ -326,6 +331,9 @@ public class WeatherActivity extends BaseActivity<ActivityWeatherBinding> implem
     public void onClick(View v) {
         switch (v.getId()) {
             case R.id.fab:
+                drawerLayout.closeDrawers();
+                ChooseAreaActivity.start(this);
+                finish();
                 break;
         }
     }
