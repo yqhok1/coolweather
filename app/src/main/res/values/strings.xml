@@ -2,6 +2,8 @@
     <string name="app_name">CoolWeather</string>
     <string name="open">open</string>
     <string name="close">close</string>
-    <string name="pref_key_weather_alerts">""</string>
-    <string name="pref_summary_weather_alters">"天气提醒"</string>
+    <string name="pref_key_weather_alerts_morning">pref_key_weather_alerts_morning</string>
+    <string name="pref_summary_weather_alters_morning">早晨天气提醒</string>
+    <string name="pref_key_weather_alerts_night">pref_key_weather_alerts_night</string>
+    <string name="pref_summary_weather_alters_night">夜间天气提醒</string>
 </resources>

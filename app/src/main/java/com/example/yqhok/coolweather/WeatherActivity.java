@@ -8,6 +8,10 @@ import android.graphics.Color;
 import android.os.Build;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
+import android.support.annotation.NonNull;
+import android.support.design.internal.NavigationMenuItemView;
+import android.support.design.widget.FloatingActionButton;
+import android.support.design.widget.NavigationView;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.app.ActionBarDrawerToggle;
@@ -38,7 +42,7 @@ import okhttp3.Call;
 import okhttp3.Callback;
 import okhttp3.Response;
 
-public class WeatherActivity extends BaseActivity<ActivityWeatherBinding> implements SwipeRefreshLayout.OnRefreshListener {
+public class WeatherActivity extends BaseActivity<ActivityWeatherBinding> implements SwipeRefreshLayout.OnRefreshListener, NavigationView.OnNavigationItemSelectedListener, View.OnClickListener {
 
     private Toolbar toolbar;
     private ScrollView weatherLayout;
@@ -53,6 +57,14 @@ public class WeatherActivity extends BaseActivity<ActivityWeatherBinding> implem
     public SwipeRefreshLayout swipeRefresh;
     public DrawerLayout drawerLayout;
     private ActionBarDrawerToggle drawerToggle;
+    private NavigationView navigationView;
+    private FloatingActionButton fab;
+
+    private NavigationMenuItemView city1;
+    private NavigationMenuItemView city2;
+    private NavigationMenuItemView city3;
+    private NavigationMenuItemView city4;
+    private NavigationMenuItemView city5;
 
     private ForecastItemBinding forecastItemBinding;
 
@@ -96,6 +108,8 @@ public class WeatherActivity extends BaseActivity<ActivityWeatherBinding> implem
         sportText = bindingView.suggestion.sportText;
         swipeRefresh = bindingView.swipeRefresh;
         drawerLayout = bindingView.drawerLayout;
+        navigationView = bindingView.navigationView;
+        fab = bindingView.fab;
         toolbar.setBackgroundResource(android.R.color.transparent);
         setSupportActionBar(toolbar);
         getSupportActionBar().setHomeButtonEnabled(true);
@@ -115,22 +129,37 @@ public class WeatherActivity extends BaseActivity<ActivityWeatherBinding> implem
         };
         drawerToggle.syncState();
         drawerLayout.addDrawerListener(drawerToggle);
+        navigationView.inflateHeaderView(R.layout.nav_header);
+        navigationView.inflateMenu(R.menu.nav_menu);
+        navigationView.setNavigationItemSelectedListener(this);
+        city1 = (NavigationMenuItemView) findViewById(R.id.city1);
+        city2 = (NavigationMenuItemView) findViewById(R.id.city2);
+        city3 = (NavigationMenuItemView) findViewById(R.id.city3);
+        city4 = (NavigationMenuItemView) findViewById(R.id.city4);
+        city5 = (NavigationMenuItemView) findViewById(R.id.city5);
         swipeRefresh.setOnRefreshListener(this);
         swipeRefresh.setColorSchemeResources(R.color.Red);
+        fab.setOnClickListener(this);
+        fab.setBackgroundResource(android.R.color.transparent);
         getRootPic().setVisibility(View.VISIBLE);
     }
 
     private void initData() {
         SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(this);
-        String weatherString = prefs.getString("weather",null);
-        if(weatherString != null) {
+        String weatherString = prefs.getString("weather", null);
+        Intent intent = getIntent();
+        if (intent.hasExtra("weather_id")) {
+            mWeatherId = getIntent().getStringExtra("weather_id");
+            weatherLayout.setVisibility(View.INVISIBLE);
+            requestWeather(mWeatherId);
+        } else if (weatherString != null) {
             Weather weather = Utility.handleWeatherResponse(weatherString);
             mWeatherId = weather.basic.weatherId;
             showWeatherInfo(weather);
         } else {
             mWeatherId = getIntent().getStringExtra("weather_id");
-            String weatherId = getIntent().getStringExtra("weather_id");
-            requestWeather(weatherId);
+            weatherLayout.setVisibility(View.INVISIBLE);
+            requestWeather(mWeatherId);
         }
         String bingPic = prefs.getString("bing_pic",null);
         if (bingPic != null) {
@@ -153,8 +182,9 @@ public class WeatherActivity extends BaseActivity<ActivityWeatherBinding> implem
                     public void run() {
                         if (weather != null && "ok".equals(weather.status)) {
                             SharedPreferences.Editor editor = PreferenceManager.getDefaultSharedPreferences(WeatherActivity.this).edit();
-                            editor.putString("weather",responseText);
+                            editor.putString("weather", responseText);
                             editor.apply();
+                            mWeatherId = weather.basic.weatherId;
                             showWeatherInfo(weather);
                         } else {
                             Toast.makeText(WeatherActivity.this,"获取天气信息失败",Toast.LENGTH_SHORT).show();
@@ -175,6 +205,7 @@ public class WeatherActivity extends BaseActivity<ActivityWeatherBinding> implem
                     }
                 });
             }
+
         });
         loadBingPic();
     }
@@ -274,4 +305,36 @@ public class WeatherActivity extends BaseActivity<ActivityWeatherBinding> implem
         requestWeather(mWeatherId);
     }
 
+    @Override
+    public boolean onNavigationItemSelected(@NonNull MenuItem item) {
+        switch (item.getItemId()) {
+            case R.id.city1:
+                drawerLayout.closeDrawers();
+                break;
+            case R.id.city2:
+                drawerLayout.closeDrawers();
+                break;
+            case R.id.city3:
+                drawerLayout.closeDrawers();
+                break;
+            case R.id.city4:
+                drawerLayout.closeDrawers();
+                break;
+            case R.id.city5:
+                drawerLayout.closeDrawers();
+                break;
+        }
+        return true;
+    }
+
+    @Override
+    public void onClick(View v) {
+        switch (v.getId()) {
+            case R.id.fab:
+                drawerLayout.closeDrawers();
+                ChooseAreaActivity.start(this);
+                finish();
+                break;
+        }
+    }
 }
