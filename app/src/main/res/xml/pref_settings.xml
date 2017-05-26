@@ -1,7 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
 <PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
+
     <SwitchPreference
-        android:key="@string/pref_key_weather_alerts"
-        android:summary="@string/pref_summary_weather_alters"/>
+        android:key="@string/pref_key_weather_alerts_morning"
+        android:title="@string/pref_summary_weather_alters_morning" />
+
+    <SwitchPreference
+        android:key="@string/pref_key_weather_alerts_night"
+        android:title="@string/pref_summary_weather_alters_night" />
 
 </PreferenceScreen>
