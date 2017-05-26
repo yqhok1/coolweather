@@ -1,12 +1,15 @@
 package com.example.yqhok.coolweather.gson;
 
+import android.os.Parcel;
+import android.os.Parcelable;
+
 import com.google.gson.annotations.SerializedName;
 
 /**
  * Created by yqhok on 2017/5/24.
  */
 
-public class Forecast {
+public class Forecast implements Parcelable{
 
     public String date;
 
@@ -30,5 +33,27 @@ public class Forecast {
         public String info;
     }
 
+    @Override
+    public int describeContents() {
+        return 0;
+    }
 
+    @Override
+    public void writeToParcel(Parcel dest, int flags) {
+        dest.writeString(date);
+    }
+
+    public static final Parcelable.Creator<Forecast> CREATOR = new Parcelable.Creator<Forecast>() {
+        @Override
+        public Forecast createFromParcel(Parcel source) {
+            Forecast forecast = new Forecast();
+            forecast.date = source.readString();
+            return forecast;
+        }
+
+        @Override
+        public Forecast[] newArray(int size) {
+            return new Forecast[size];
+        }
+    };
 }

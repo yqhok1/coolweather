@@ -1,12 +1,15 @@
 package com.example.yqhok.coolweather.db;
 
+import android.os.Parcel;
+import android.os.Parcelable;
+
 import org.litepal.crud.DataSupport;
 
 /**
  * Created by yqhok on 2017/5/21.
  */
 
-public class County extends DataSupport {
+public class County extends DataSupport implements Parcelable{
 
     private int id;
     private String countyName;
@@ -45,4 +48,33 @@ public class County extends DataSupport {
         this.cityId = cityId;
     }
 
+    @Override
+    public int describeContents() {
+        return 0;
+    }
+
+    @Override
+    public void writeToParcel(Parcel dest, int flags) {
+        dest.writeInt(id);
+        dest.writeString(countyName);
+        dest.writeString(weatherId);
+        dest.writeInt(cityId);
+    }
+
+    public  static final Parcelable.Creator<County> CREATOR = new Parcelable.Creator<County>() {
+        @Override
+        public County createFromParcel(Parcel source) {
+            County county = new County();
+            county.id = source.readInt();
+            county.countyName = source.readString();
+            county.weatherId = source.readString();
+            county.cityId = source.readInt();
+            return county;
+        }
+
+        @Override
+        public County[] newArray(int size) {
+            return new County[size];
+        }
+    };
 }
