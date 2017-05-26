@@ -28,6 +28,7 @@ import com.example.yqhok.coolweather.databinding.ForecastItemBinding;
 import com.example.yqhok.coolweather.gson.Forecast;
 import com.example.yqhok.coolweather.gson.Weather;
 import com.example.yqhok.coolweather.service.AutoUpdateService;
+import com.example.yqhok.coolweather.service.SettingTimeUpdateService;
 import com.example.yqhok.coolweather.util.HttpUtil;
 import com.example.yqhok.coolweather.util.Utility;
 
@@ -211,6 +212,8 @@ public class WeatherActivity extends BaseActivity<ActivityWeatherBinding> implem
         weatherLayout.setVisibility(View.VISIBLE);
         Intent intent = new Intent(this, AutoUpdateService.class);
         startService(intent);
+        Intent intent1 = new Intent(this, SettingTimeUpdateService.class);
+        startService(intent1);
     }
 
     private void loadBingPic(){
