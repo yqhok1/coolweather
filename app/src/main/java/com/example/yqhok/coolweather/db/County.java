@@ -9,7 +9,7 @@ import org.litepal.crud.DataSupport;
  * Created by yqhok on 2017/5/21.
  */
 
-public class County extends DataSupport implements Parcelable{
+public class County extends DataSupport implements Parcelable {
 
     private int id;
     private String countyName;
@@ -61,7 +61,7 @@ public class County extends DataSupport implements Parcelable{
         dest.writeInt(cityId);
     }
 
-    public  static final Parcelable.Creator<County> CREATOR = new Parcelable.Creator<County>() {
+    public static final Parcelable.Creator<County> CREATOR = new Parcelable.Creator<County>() {
         @Override
         public County createFromParcel(Parcel source) {
             County county = new County();
