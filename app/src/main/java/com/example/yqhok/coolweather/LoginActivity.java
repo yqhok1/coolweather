@@ -113,6 +113,7 @@ public class LoginActivity extends BaseActivity<ActivityLoginBinding> implements
         TextPaint paint = hint.getPaint();
         paint.setFakeBoldText(true);
         getVerificationCode.setOnClickListener(this);
+        getVerificationCode.setClickable(false);
         confirm.setOnClickListener(this);
         getRootPic().setVisibility(View.VISIBLE);
         time = new TimeCount(30000, 1000);
@@ -267,7 +268,12 @@ public class LoginActivity extends BaseActivity<ActivityLoginBinding> implements
 
     @Override
     public void onTextChanged(CharSequence s, int start, int before, int count) {
-        strCode = s.toString();
+        if (s.length() == 4) {
+            getVerificationCode.setClickable(true);
+            strCode = s.toString();
+        } else {
+            getVerificationCode.setClickable(false);
+        }
     }
 
     @Override
@@ -304,7 +310,7 @@ public class LoginActivity extends BaseActivity<ActivityLoginBinding> implements
         public void onTick(long millisUntilFinished) {
             getVerificationCode.setBackgroundResource(R.color.Gray);
             getVerificationCode.setClickable(false);
-            getVerificationCode.setText(millisUntilFinished / 1000 + "秒");
+            getVerificationCode.setText(millisUntilFinished / 1000 + "s");
         }
 
         @Override

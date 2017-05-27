@@ -85,6 +85,7 @@ public class RegisterActivity extends BaseActivity<ActivityRegisterBinding> impl
         });
         phone.addTextChangedListener(this);
         getVerificationCode.setOnClickListener(this);
+        getVerificationCode.setClickable(false);
         getRootPic().setVisibility(View.VISIBLE);
     }
 
@@ -135,7 +136,12 @@ public class RegisterActivity extends BaseActivity<ActivityRegisterBinding> impl
 
     @Override
     public void onTextChanged(CharSequence s, int start, int before, int count) {
-        strPhone = s.toString();
+        if (s.length() == 11) {
+            getVerificationCode.setClickable(true);
+            strPhone = s.toString();
+        } else {
+            getVerificationCode.setClickable(false);
+        }
     }
 
     @Override

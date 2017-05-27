@@ -2,6 +2,7 @@ package com.example.yqhok.coolweather;
 
 import android.app.TimePickerDialog;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
@@ -72,27 +73,29 @@ public class SettingsActivity extends BaseActivity<ActivitySettingsBinding> {
         @Override
         public boolean onPreferenceChange(Preference preference, Object newValue) {
             SharedPreferences.Editor editor = MyApplication.getContext().getSharedPreferences("pref", MODE_PRIVATE).edit();
+            Boolean checked = (Boolean) newValue;
             switch (preference.getKey()) {
                 case "pref_key_weather_alerts_morning":
-                    if (weatherAlertsMorningPref.isChecked()) {
+                    if (checked) {
                         editor.putBoolean("pref_key_weather_alerts_morning", true);
                     } else {
                         editor.putBoolean("pref_key_weather_alerts_morning", false);
                         Intent intent = new Intent(getActivity(), SettingTimeUpdateService.class);
                         getActivity().stopService(intent);
                     }
+                    editor.apply();
                     break;
                 case "pref_key_weather_alerts_night":
-                    if (weatherAlertsNightPref.isChecked()) {
+                    if (checked) {
                         editor.putBoolean("pref_key_weather_alerts_night", true);
                     } else {
                         editor.putBoolean("pref_key_weather_alerts_night", false);
                         Intent intent = new Intent(getActivity(), SettingTimeUpdateService.class);
                         getActivity().stopService(intent);
                     }
+                    editor.apply();
                     break;
             }
-            editor.apply();
             return true;
         }
 
@@ -109,13 +112,21 @@ public class SettingsActivity extends BaseActivity<ActivitySettingsBinding> {
                                 String strHourOfDay = hourOfDay < 10 ? "0" + hourOfDay : "" + hourOfDay;
                                 String strMinuteOfDay = minute < 10 ? "0" + minute : "" + minute;
                                 time.append(strHourOfDay + ":" + strMinuteOfDay);
-                                editor.putString("pref_key_weather_alters_time_morning", time.toString());
+                                editor.putString("pref_key_weather_alerts_time_morning", time.toString());
+                                editor.apply();
                                 weatherAlertsMorningPref.setSummaryOn(time);
                                 Intent intent = new Intent(getActivity(), SettingTimeUpdateService.class);
-                                intent.putExtra("time", time.toString());
                                 getActivity().startService(intent);
                             }
                         }, 0, 0, true);
+                        timePickerDialog.setOnCancelListener(new DialogInterface.OnCancelListener() {
+                            @Override
+                            public void onCancel(DialogInterface dialog) {
+                                weatherAlertsMorningPref.setChecked(false);
+                                editor.putBoolean("pref_key_weather_alerts_morning", false);
+                                editor.apply();
+                            }
+                        });
                         timePickerDialog.show();
                     }
                     break;
@@ -128,18 +139,25 @@ public class SettingsActivity extends BaseActivity<ActivitySettingsBinding> {
                                 String strHourOfDay = hourOfDay < 10 ? "0" + hourOfDay : "" + hourOfDay;
                                 String strMinuteOfDay = minute < 10 ? "0" + minute : "" + minute;
                                 time.append(strHourOfDay + ":" + strMinuteOfDay);
-                                editor.putString("pref_key_weather_alters_time_night", time.toString());
-                                weatherAlertsMorningPref.setSummaryOn(time);
+                                editor.putString("pref_key_weather_alerts_time_night", time.toString());
+                                editor.apply();
+                                weatherAlertsNightPref.setSummaryOn(time);
                                 Intent intent = new Intent(getActivity(), SettingTimeUpdateService.class);
-                                intent.putExtra("time", time.toString());
                                 getActivity().startService(intent);
                             }
                         }, 0, 0, true);
+                        timePickerDialog.setOnCancelListener(new DialogInterface.OnCancelListener() {
+                            @Override
+                            public void onCancel(DialogInterface dialog) {
+                                weatherAlertsNightPref.setChecked(false);
+                                editor.putBoolean("pref_key_weather_alerts_night", false);
+                                editor.apply();
+                            }
+                        });
                         timePickerDialog.show();
                     }
                     break;
             }
-            editor.apply();
             return true;
         }
     }
