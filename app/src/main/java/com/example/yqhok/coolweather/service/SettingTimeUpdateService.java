@@ -25,33 +25,49 @@ public class SettingTimeUpdateService extends Service {
 
     @Override
     public int onStartCommand(final Intent intent, int flags, int startId) {
-        java.util.Timer timer = new java.util.Timer(true);
-        final Calendar nowtime = Calendar.getInstance();
-        int year = nowtime.get(Calendar.YEAR);
-        int month = nowtime.get(Calendar.MONTH);
-        int day = nowtime.get(Calendar.DATE);
-        int hour = 14;
-        int minute = 50;
-        Date date = new Date(year-1900, month, day, hour, minute);
+        Intent i = new Intent(this, WeatherActivity.class);
+        final PendingIntent pi = PendingIntent.getActivity(this, 0, i, 0);
+        java.util.Timer timer= new java.util.Timer(true);//程序结束timer也结束
+        final Calendar settime = Calendar.getInstance();
+        final Calendar time = Calendar.getInstance();
+        String s = "04:39";
+        String hour = s.substring(0,2);
+        String minute = s.substring(s.length()-2);
+        int h = Integer.parseInt(hour);
+        int m = Integer.parseInt(minute);
+        settime.set(Calendar.HOUR_OF_DAY, h);
+        settime.set(Calendar.MINUTE, m);
+        settime.set(Calendar.SECOND,00);
+        Date date = settime.getTime();
+        if(date.before(new Date())){
+            date = this.addDate(date,1);
+        }
+        final long Perioday = 24 * 60 * 60 * 1000;
         final TimerTask task = new TimerTask() {
             @Override
             public void run() {
-                Intent i = new Intent(SettingTimeUpdateService.this, WeatherActivity.class);
-                final PendingIntent pi = PendingIntent.getActivity(SettingTimeUpdateService.this, 0, i, 0);
-                NotificationManager manager = (NotificationManager)getSystemService(NOTIFICATION_SERVICE);
-                Notification notification = new NotificationCompat.Builder(SettingTimeUpdateService.this)
-                        .setContentTitle("Cool Weather")
-                        .setContentText("有一条新的天气信息")
-                        .setWhen(System.currentTimeMillis())
-                        .setSmallIcon(R.mipmap.ic_launcher)
-                        .setLargeIcon(BitmapFactory.decodeResource(getResources(), R.mipmap.ic_launcher))
-                        .setContentIntent(pi)
-                        .setAutoCancel(true)
-                        .build();
-                manager.notify(1, notification);
+                    NotificationManager manager = (NotificationManager) getSystemService(NOTIFICATION_SERVICE);
+                    Notification notification = new NotificationCompat.Builder(SettingTimeUpdateService.this)
+                            .setContentTitle("CoolWeather")
+                            .setContentText("有一条新的天气信息")
+                            .setWhen(System.currentTimeMillis())
+                            .setSmallIcon(R.mipmap.ic_launcher)
+                            .setLargeIcon(BitmapFactory.decodeResource(getResources(), R.mipmap.ic_launcher))
+                            .setContentIntent(pi)
+                            .setAutoCancel(true)
+                            .build();
+                    manager.notify(1, notification);
+
             }
         };
-        timer.schedule(task, date);
+        timer.schedule(task,date,Perioday);
         return super.onStartCommand(intent, flags, startId);
+    }
+
+    public Date addDate(Date date, int num) {
+        Calendar startdt = Calendar.getInstance();
+        startdt.setTime(date);
+        startdt.add(Calendar.DAY_OF_MONTH, num);
+        return startdt.getTime();
     }
 }
