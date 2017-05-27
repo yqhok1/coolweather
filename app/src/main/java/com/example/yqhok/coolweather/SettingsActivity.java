@@ -13,6 +13,7 @@ import android.widget.TimePicker;
 
 import com.example.yqhok.coolweather.base.BaseActivity;
 import com.example.yqhok.coolweather.databinding.ActivitySettingsBinding;
+import com.example.yqhok.coolweather.service.SettingTimeUpdateService;
 
 public class SettingsActivity extends BaseActivity<ActivitySettingsBinding> {
 
@@ -77,6 +78,8 @@ public class SettingsActivity extends BaseActivity<ActivitySettingsBinding> {
                         editor.putBoolean("pref_key_weather_alerts_morning", true);
                     } else {
                         editor.putBoolean("pref_key_weather_alerts_morning", false);
+                        Intent intent = new Intent(getActivity(), SettingTimeUpdateService.class);
+                        getActivity().stopService(intent);
                     }
                     break;
                 case "pref_key_weather_alerts_night":
@@ -84,6 +87,8 @@ public class SettingsActivity extends BaseActivity<ActivitySettingsBinding> {
                         editor.putBoolean("pref_key_weather_alerts_night", true);
                     } else {
                         editor.putBoolean("pref_key_weather_alerts_night", false);
+                        Intent intent = new Intent(getActivity(), SettingTimeUpdateService.class);
+                        getActivity().stopService(intent);
                     }
                     break;
             }
@@ -106,6 +111,9 @@ public class SettingsActivity extends BaseActivity<ActivitySettingsBinding> {
                                 time.append(strHourOfDay + ":" + strMinuteOfDay);
                                 editor.putString("pref_key_weather_alters_time_morning", time.toString());
                                 weatherAlertsMorningPref.setSummaryOn(time);
+                                Intent intent = new Intent(getActivity(), SettingTimeUpdateService.class);
+                                intent.putExtra("time", time.toString());
+                                getActivity().startService(intent);
                             }
                         }, 0, 0, true);
                         timePickerDialog.show();
@@ -122,6 +130,9 @@ public class SettingsActivity extends BaseActivity<ActivitySettingsBinding> {
                                 time.append(strHourOfDay + ":" + strMinuteOfDay);
                                 editor.putString("pref_key_weather_alters_time_night", time.toString());
                                 weatherAlertsMorningPref.setSummaryOn(time);
+                                Intent intent = new Intent(getActivity(), SettingTimeUpdateService.class);
+                                intent.putExtra("time", time.toString());
+                                getActivity().startService(intent);
                             }
                         }, 0, 0, true);
                         timePickerDialog.show();

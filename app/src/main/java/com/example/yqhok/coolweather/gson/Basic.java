@@ -9,7 +9,7 @@ import com.google.gson.annotations.SerializedName;
  * Created by yqhok on 2017/5/24.
  */
 
-public class Basic implements Parcelable{
+public class Basic implements Parcelable {
 
     @SerializedName("city")
     public String cityName;

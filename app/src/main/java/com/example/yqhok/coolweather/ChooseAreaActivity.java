@@ -78,6 +78,12 @@ public class ChooseAreaActivity extends BaseActivity<ActivityChooseAreaBinding> 
         showContentView();
     }
 
+    @Override
+    public void onBackPressed() {
+        super.onBackPressed();
+        WeatherActivity.start(this);
+    }
+
     public static void start(Context context) {
         Intent intent = new Intent(context, ChooseAreaActivity.class);
         context.startActivity(intent);

@@ -9,7 +9,7 @@ import com.google.gson.annotations.SerializedName;
  * Created by yqhok on 2017/5/24.
  */
 
-public class Forecast implements Parcelable{
+public class Forecast implements Parcelable {
 
     public String date;
 

@@ -9,7 +9,7 @@ import org.litepal.crud.DataSupport;
  * Created by yqhok on 2017/5/21.
  */
 
-public class City extends DataSupport implements Parcelable{
+public class City extends DataSupport implements Parcelable {
 
     private int id;
     private String cityName;

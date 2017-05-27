@@ -131,7 +131,6 @@ public class RegisterActivity extends BaseActivity<ActivityRegisterBinding> impl
 
     @Override
     public void beforeTextChanged(CharSequence s, int start, int count, int after) {
-
     }
 
     @Override
@@ -141,7 +140,6 @@ public class RegisterActivity extends BaseActivity<ActivityRegisterBinding> impl
 
     @Override
     public void afterTextChanged(Editable s) {
-
     }
 
     @Override

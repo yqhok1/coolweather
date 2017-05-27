@@ -9,7 +9,7 @@ import com.google.gson.annotations.SerializedName;
  * Created by yqhok on 2017/5/24.
  */
 
-public class Now implements Parcelable{
+public class Now implements Parcelable {
 
     @SerializedName("tmp")
     public String temperature;
