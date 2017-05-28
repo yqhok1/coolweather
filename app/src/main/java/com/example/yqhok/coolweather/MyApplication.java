@@ -2,6 +2,8 @@ package com.example.yqhok.coolweather;
 
 import android.content.Context;
 
+import com.avos.avoscloud.AVOSCloud;
+
 import org.litepal.LitePalApplication;
 
 /**
@@ -17,6 +19,8 @@ public class MyApplication extends LitePalApplication {
         super.onCreate();
         context = getApplicationContext();
         LitePalApplication.initialize(context);
+        AVOSCloud.initialize(this, "ny1OrJPEwlsKYp8b4OlER0KR-gzGzoHsz", "o5SHIkdU2SOCMoxlhKLiQxmw");
+        AVOSCloud.setDebugLogEnabled(true);
     }
 
     public static Context getContext() {

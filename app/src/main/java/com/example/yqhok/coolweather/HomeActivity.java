@@ -1,6 +1,5 @@
 package com.example.yqhok.coolweather;
 
-import android.content.Intent;
 import android.content.SharedPreferences;
 import android.graphics.Color;
 import android.os.Build;
@@ -8,10 +7,12 @@ import android.os.Bundle;
 import android.preference.PreferenceManager;
 import android.support.v7.widget.Toolbar;
 import android.view.View;
+import android.widget.Button;
 
 import com.bumptech.glide.Glide;
 import com.example.yqhok.coolweather.base.BaseActivity;
-import com.example.yqhok.coolweather.databinding.ActivityBaseBinding;
+import com.example.yqhok.coolweather.databinding.ActivityHomeBinding;
+import com.example.yqhok.coolweather.login.RegisterActivity;
 import com.example.yqhok.coolweather.util.HttpUtil;
 
 import java.io.IOException;
@@ -20,9 +21,11 @@ import okhttp3.Call;
 import okhttp3.Callback;
 import okhttp3.Response;
 
-public class HomeActivity extends BaseActivity<ActivityBaseBinding> {
+public class HomeActivity extends BaseActivity<ActivityHomeBinding> implements View.OnClickListener {
 
     private Toolbar toolbar;
+    private Button login;
+    private Button chooseArea;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -41,19 +44,21 @@ public class HomeActivity extends BaseActivity<ActivityBaseBinding> {
 
     private void initView() {
         toolbar = getToolBar();
+        login = bindingView.actionLogin;
+        chooseArea = bindingView.actionChooseArea;
         toolbar.setBackgroundResource(R.color.Black);
         setSupportActionBar(toolbar);
         getSupportActionBar().setDisplayHomeAsUpEnabled(false);
         toolbar.setTitle("CoolWeather");
+        login.setOnClickListener(this);
+        chooseArea.setOnClickListener(this);
         getRootPic().setVisibility(View.VISIBLE);
     }
 
     private void initData() {
         SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(this);
         if (preferences.getString("weather", null) != null) {
-            Intent intent = new Intent(this, WeatherActivity.class);
-            startActivity(intent);
-            finish();
+            WeatherActivity.start(this);
         }
     }
 
@@ -81,4 +86,15 @@ public class HomeActivity extends BaseActivity<ActivityBaseBinding> {
         });
     }
 
+    @Override
+    public void onClick(View v) {
+        switch (v.getId()) {
+            case R.id.action_login:
+                RegisterActivity.start(this);
+                break;
+            case R.id.action_choose_area:
+                ChooseAreaActivity.start(this);
+                break;
+        }
+    }
 }

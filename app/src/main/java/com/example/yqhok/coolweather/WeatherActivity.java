@@ -9,7 +9,6 @@ import android.os.Build;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
 import android.support.annotation.NonNull;
-import android.support.design.internal.NavigationMenuItemView;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.NavigationView;
 import android.support.v4.widget.DrawerLayout;
@@ -25,17 +24,23 @@ import android.widget.ScrollView;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.avos.avoscloud.AVUser;
 import com.bumptech.glide.Glide;
 import com.example.yqhok.coolweather.base.BaseActivity;
 import com.example.yqhok.coolweather.databinding.ActivityWeatherBinding;
 import com.example.yqhok.coolweather.databinding.ForecastItemBinding;
+import com.example.yqhok.coolweather.db.WeatherInfo;
 import com.example.yqhok.coolweather.gson.Forecast;
 import com.example.yqhok.coolweather.gson.Weather;
+import com.example.yqhok.coolweather.login.RegisterActivity;
 import com.example.yqhok.coolweather.service.AutoUpdateService;
 import com.example.yqhok.coolweather.util.HttpUtil;
 import com.example.yqhok.coolweather.util.Utility;
 
+import org.litepal.crud.DataSupport;
+
 import java.io.IOException;
+import java.util.List;
 
 import okhttp3.Call;
 import okhttp3.Callback;
@@ -58,12 +63,6 @@ public class WeatherActivity extends BaseActivity<ActivityWeatherBinding> implem
     private ActionBarDrawerToggle drawerToggle;
     private NavigationView navigationView;
     private FloatingActionButton fab;
-
-    private NavigationMenuItemView city1;
-    private NavigationMenuItemView city2;
-    private NavigationMenuItemView city3;
-    private NavigationMenuItemView city4;
-    private NavigationMenuItemView city5;
 
     private ForecastItemBinding forecastItemBinding;
 
@@ -131,11 +130,19 @@ public class WeatherActivity extends BaseActivity<ActivityWeatherBinding> implem
         navigationView.inflateHeaderView(R.layout.nav_header);
         navigationView.inflateMenu(R.menu.nav_menu);
         navigationView.setNavigationItemSelectedListener(this);
-        city1 = (NavigationMenuItemView) findViewById(R.id.city1);
-        city2 = (NavigationMenuItemView) findViewById(R.id.city2);
-        city3 = (NavigationMenuItemView) findViewById(R.id.city3);
-        city4 = (NavigationMenuItemView) findViewById(R.id.city4);
-        city5 = (NavigationMenuItemView) findViewById(R.id.city5);
+        WeatherInfo weather = DataSupport.where("isCurrent = ?", "true").findFirst(WeatherInfo.class);
+        if (weather != null) {
+            navigationView.getMenu().add(R.id.choose_city, 0, 0, weather.getCityName()).setIcon(R.drawable.city);
+            List<WeatherInfo> weatherList = DataSupport.where("isCurrent = ?", "false").find(WeatherInfo.class);
+            for (int i = 1; i < weatherList.size() + 1; i ++) {
+                navigationView.getMenu().add(R.id.choose_city, i, i, weatherList.get(i).getCityName()).setIcon(R.drawable.city);
+            }
+        } else {
+            List<WeatherInfo> weatherList = DataSupport.findAll(WeatherInfo.class);
+            for (int i = 0; i < weatherList.size(); i ++) {
+                navigationView.getMenu().add(R.id.choose_city, i, i, weatherList.get(i).getCityName()).setIcon(R.drawable.city);
+            }
+        }
         swipeRefresh.setOnRefreshListener(this);
         swipeRefresh.setColorSchemeResources(R.color.Red);
         fab.setOnClickListener(this);
@@ -155,12 +162,8 @@ public class WeatherActivity extends BaseActivity<ActivityWeatherBinding> implem
             Weather weather = Utility.handleWeatherResponse(weatherString);
             mWeatherId = weather.basic.weatherId;
             showWeatherInfo(weather);
-        } else {
-            mWeatherId = getIntent().getStringExtra("weather_id");
-            weatherLayout.setVisibility(View.INVISIBLE);
-            requestWeather(mWeatherId);
         }
-        String bingPic = prefs.getString("bing_pic",null);
+        String bingPic = prefs.getString("bing_pic", null);
         if (bingPic != null) {
             Glide.with(this).load(bingPic).into(getRootPic());
         } else {
@@ -176,21 +179,38 @@ public class WeatherActivity extends BaseActivity<ActivityWeatherBinding> implem
             public void onResponse(Call call, Response response) throws IOException {
                 final String responseText = response.body().string();
                 final Weather weather = Utility.handleWeatherResponse(responseText);
-                runOnUiThread(new Runnable() {
-                    @Override
-                    public void run() {
-                        if (weather != null && "ok".equals(weather.status)) {
-                            SharedPreferences.Editor editor = PreferenceManager.getDefaultSharedPreferences(WeatherActivity.this).edit();
-                            editor.putString("weather", responseText);
-                            editor.apply();
-                            mWeatherId = weather.basic.weatherId;
-                            showWeatherInfo(weather);
-                        } else {
-                            Toast.makeText(WeatherActivity.this,"获取天气信息失败",Toast.LENGTH_SHORT).show();
-                        }
-                        swipeRefresh.setRefreshing(false);
+                if (weather != null && "ok".equals(weather.status)) {
+                    SharedPreferences.Editor editor = PreferenceManager.getDefaultSharedPreferences(WeatherActivity.this).edit();
+                    editor.putString("weather", responseText);
+                    editor.apply();
+                    mWeatherId = weather.basic.weatherId;
+                    WeatherInfo currentWeather = DataSupport.where("weatherId = ?", mWeatherId).findFirst(WeatherInfo.class);
+                    if (currentWeather == null) {
+                        currentWeather = new WeatherInfo();
+                        currentWeather.setWeatherId(weather.basic.weatherId);
+                        currentWeather.setIsCurrent(true);
                     }
-                });
+                    currentWeather.setCityName(weather.basic.cityName);
+                    currentWeather.setMin(weather.forecastList.get(0).temperature.min);
+                    currentWeather.setMax(weather.forecastList.get(0).temperature.max);
+                    currentWeather.setInfo(weather.now.more.info);
+                    currentWeather.save();
+                    runOnUiThread(new Runnable() {
+                        @Override
+                        public void run() {
+                            showWeatherInfo(weather);
+                            swipeRefresh.setRefreshing(false);
+                        }
+                    });
+                } else {
+                    runOnUiThread(new Runnable() {
+                        @Override
+                        public void run() {
+                            Toast.makeText(WeatherActivity.this,"获取天气信息失败",Toast.LENGTH_SHORT).show();
+                            swipeRefresh.setRefreshing(false);
+                        }
+                    });
+                }
             }
 
             @Override
@@ -283,7 +303,12 @@ public class WeatherActivity extends BaseActivity<ActivityWeatherBinding> implem
     public boolean onOptionsItemSelected(MenuItem item) {
         switch (item.getItemId()) {
             case R.id.action_login:
-                RegisterActivity.start(this);
+                AVUser user = AVUser.getCurrentUser();
+                if (user == null) {
+                    RegisterActivity.start(this);
+                } else {
+                    UserInfoActivity.start(this);
+                }
                 return true;
             case R.id.settings:
                 SettingsActivity.start(this);
@@ -305,20 +330,18 @@ public class WeatherActivity extends BaseActivity<ActivityWeatherBinding> implem
     @Override
     public boolean onNavigationItemSelected(@NonNull MenuItem item) {
         switch (item.getItemId()) {
-            case R.id.city1:
+            default:
                 drawerLayout.closeDrawers();
-                break;
-            case R.id.city2:
-                drawerLayout.closeDrawers();
-                break;
-            case R.id.city3:
-                drawerLayout.closeDrawers();
-                break;
-            case R.id.city4:
-                drawerLayout.closeDrawers();
-                break;
-            case R.id.city5:
-                drawerLayout.closeDrawers();
+                if (DataSupport.isExist(WeatherInfo.class)) {
+                    WeatherInfo weather = DataSupport.where("cityName = ?", item.getTitle().toString()).findFirst(WeatherInfo.class);
+                    mWeatherId = weather.getWeatherId();
+                    navigationView.getMenu().clear();
+                    List<WeatherInfo> weatherList = DataSupport.findAll(WeatherInfo.class);
+                    for (int i = 0; i < weatherList.size(); i ++) {
+                        navigationView.getMenu().add(R.id.choose_city, i, i, weatherList.get(i).getCityName()).setIcon(R.drawable.city);
+                    }
+                    onRefresh();
+                }
                 break;
         }
         return true;
@@ -334,4 +357,5 @@ public class WeatherActivity extends BaseActivity<ActivityWeatherBinding> implem
                 break;
         }
     }
+
 }

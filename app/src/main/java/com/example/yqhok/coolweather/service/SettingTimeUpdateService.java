@@ -12,6 +12,9 @@ import android.support.v4.app.NotificationCompat;
 
 import com.example.yqhok.coolweather.R;
 import com.example.yqhok.coolweather.WeatherActivity;
+import com.example.yqhok.coolweather.db.WeatherInfo;
+
+import org.litepal.crud.DataSupport;
 
 import java.util.Calendar;
 import java.util.Date;
@@ -58,6 +61,7 @@ public class SettingTimeUpdateService extends Service {
         if(date.before(new Date())){
             date = this.addDate(date, 1);
         }
+        final WeatherInfo weather = DataSupport.where("isCurrent = ?", "true").findFirst(WeatherInfo.class);
         final long Period = 24 * 60 * 60 * 1000;
         java.util.Timer timer = new java.util.Timer(true);
         final TimerTask task = new TimerTask() {
@@ -66,7 +70,7 @@ public class SettingTimeUpdateService extends Service {
                 NotificationManager manager = (NotificationManager) getSystemService(NOTIFICATION_SERVICE);
                 Notification notification = new NotificationCompat.Builder(SettingTimeUpdateService.this)
                         .setContentTitle("CoolWeather")
-                        .setContentText("有一条新的天气信息")
+                        .setContentText(weather.getCityName() + ":" + weather.getInfo() + " 最低" + weather.getMin() + "℃,最高" + weather.getMax() + "℃")
                         .setWhen(System.currentTimeMillis())
                         .setSmallIcon(R.mipmap.ic_launcher)
                         .setLargeIcon(BitmapFactory.decodeResource(getResources(), R.mipmap.ic_launcher))

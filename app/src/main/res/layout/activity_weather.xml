@@ -55,10 +55,10 @@
                 android:id="@+id/navigation_view"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
-                android:background="@null"
-                android:alpha="0.8"
+                android:background="@android:color/transparent"
                 android:layout_gravity="start"
                 android:clickable="true"
+                app:itemIconTint="@color/White"
                 app:theme="@style/MenuTextStyle"
                 app:itemTextColor="@color/White">
 

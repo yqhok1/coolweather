@@ -73,7 +73,7 @@ public class ChooseAreaActivity extends BaseActivity<ActivityChooseAreaBinding> 
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_choose_area);
         initView();
-        setTitle("");
+        setTitle("请选择地区");
         queryProvinces();
         showContentView();
     }

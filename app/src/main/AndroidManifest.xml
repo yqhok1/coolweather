@@ -36,12 +36,12 @@
             android:launchMode="singleTask"
             android:theme="@style/AppTheme" />
         <activity
-            android:name=".RegisterActivity"
+            android:name=".login.RegisterActivity"
             android:launchMode="singleTask"
             android:theme="@style/AppTheme"
             android:windowSoftInputMode="stateVisible|adjustResize" />
         <activity
-            android:name=".LoginActivity"
+            android:name=".login.LoginActivity"
             android:launchMode="singleTask"
             android:theme="@style/AppTheme"
             android:windowSoftInputMode="stateVisible|adjustResize" />
@@ -53,6 +53,10 @@
             android:name=".ChooseAreaActivity"
             android:launchMode="singleTask"
             android:theme="@style/AppTheme" />
+        <activity
+            android:name=".UserInfoActivity"
+            android:launchMode="singleTask"
+            android:theme="@style/AppTheme" />
 
         <service
             android:name=".service.AutoUpdateService"
@@ -62,6 +66,7 @@
             android:name=".service.SettingTimeUpdateService"
             android:enabled="true"
             android:exported="true" />
+
     </application>
 
 </manifest>

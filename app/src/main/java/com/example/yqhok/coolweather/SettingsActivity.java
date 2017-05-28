@@ -6,6 +6,7 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
+import android.preference.ListPreference;
 import android.preference.Preference;
 import android.preference.PreferenceFragment;
 import android.preference.SwitchPreference;
@@ -14,7 +15,13 @@ import android.widget.TimePicker;
 
 import com.example.yqhok.coolweather.base.BaseActivity;
 import com.example.yqhok.coolweather.databinding.ActivitySettingsBinding;
+import com.example.yqhok.coolweather.db.WeatherInfo;
 import com.example.yqhok.coolweather.service.SettingTimeUpdateService;
+
+import org.litepal.crud.DataSupport;
+
+import java.util.ArrayList;
+import java.util.List;
 
 public class SettingsActivity extends BaseActivity<ActivitySettingsBinding> {
 
@@ -42,6 +49,7 @@ public class SettingsActivity extends BaseActivity<ActivitySettingsBinding> {
 
         private SwitchPreference weatherAlertsMorningPref;
         private SwitchPreference weatherAlertsNightPref;
+        private ListPreference chooseCurrentCityPref;
 
         @Override
         public void onCreate(@Nullable Bundle savedInstanceState) {
@@ -68,6 +76,19 @@ public class SettingsActivity extends BaseActivity<ActivitySettingsBinding> {
             weatherAlertsNightPref = (SwitchPreference) findPreference("pref_key_weather_alerts_night");
             weatherAlertsNightPref.setOnPreferenceChangeListener(this);
             weatherAlertsNightPref.setOnPreferenceClickListener(this);
+            chooseCurrentCityPref = (ListPreference) findPreference("pref_key_choose_current_city");
+            chooseCurrentCityPref.setOnPreferenceClickListener(this);
+            List<WeatherInfo> weatherList = DataSupport.findAll(WeatherInfo.class);
+            List<String> cityNameList = new ArrayList<>();
+            for (WeatherInfo weather : weatherList) {
+                cityNameList.add(weather.getCityName());
+            }
+            chooseCurrentCityPref.setEntries(cityNameList.toArray(new String[cityNameList.size()]));
+            chooseCurrentCityPref.setEntryValues(cityNameList.toArray(new String[cityNameList.size()]));
+            String s = chooseCurrentCityPref.getValue();
+            if (s != null) {
+                chooseCurrentCityPref.setSummary(s);
+            }
         }
 
         @Override
@@ -127,6 +148,7 @@ public class SettingsActivity extends BaseActivity<ActivitySettingsBinding> {
                                 editor.apply();
                             }
                         });
+                        timePickerDialog.setMessage("请选择时间");
                         timePickerDialog.show();
                     }
                     break;
@@ -154,8 +176,22 @@ public class SettingsActivity extends BaseActivity<ActivitySettingsBinding> {
                                 editor.apply();
                             }
                         });
+                        timePickerDialog.setMessage("请选择时间");
                         timePickerDialog.show();
                     }
+                    break;
+                case "pref_key_choose_current_city":
+                    chooseCurrentCityPref.setSummary(chooseCurrentCityPref.getValue());
+                    if (DataSupport.isExist(WeatherInfo.class)) {
+                        List<WeatherInfo> weatherList = DataSupport.findAll(WeatherInfo.class);
+                        for (WeatherInfo weatherInfo : weatherList) {
+                            weatherInfo.setIsCurrent(false);
+                            weatherInfo.save();
+                        }
+                    }
+                    WeatherInfo weather = DataSupport.where("cityName = ?", chooseCurrentCityPref.getValue()).findFirst(WeatherInfo.class);
+                    weather.setIsCurrent(true);
+                    weather.save();
                     break;
             }
             return true;

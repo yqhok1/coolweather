@@ -9,4 +9,8 @@
         android:key="@string/pref_key_weather_alerts_night"
         android:title="@string/pref_summary_weather_alters_night" />
 
+    <ListPreference
+        android:key="pref_key_choose_current_city"
+        android:title="选择当前城市" />
+
 </PreferenceScreen>

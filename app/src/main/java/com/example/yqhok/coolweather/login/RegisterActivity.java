@@ -1,4 +1,4 @@
-package com.example.yqhok.coolweather;
+package com.example.yqhok.coolweather.login;
 
 import android.content.Context;
 import android.content.Intent;
@@ -15,32 +15,29 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.Toast;
 
+import com.avos.avoscloud.AVException;
+import com.avos.avoscloud.AVQuery;
+import com.avos.avoscloud.AVUser;
+import com.avos.avoscloud.GetCallback;
 import com.bumptech.glide.Glide;
+import com.example.yqhok.coolweather.R;
 import com.example.yqhok.coolweather.base.BaseActivity;
 import com.example.yqhok.coolweather.databinding.ActivityRegisterBinding;
 import com.example.yqhok.coolweather.util.HttpUtil;
 
 import java.io.IOException;
 
-import cn.smssdk.EventHandler;
-import cn.smssdk.OnSendMessageHandler;
-import cn.smssdk.utils.SMSLog;
 import okhttp3.Call;
 import okhttp3.Callback;
 import okhttp3.Response;
 
 public class RegisterActivity extends BaseActivity<ActivityRegisterBinding> implements TextWatcher, View.OnClickListener {
 
-    private static final String DEFAULT_COUNTRY_ID = "42";
-
     private Toolbar toolbar;
-    private EditText phone;
-    private Button getVerificationCode;
+    private EditText userName;
+    private Button confirm;
 
-    private String strPhone;
-
-    private EventHandler eventHandler;
-    private OnSendMessageHandler osmHandler;
+    private String strUserName;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -53,15 +50,8 @@ public class RegisterActivity extends BaseActivity<ActivityRegisterBinding> impl
         }
         setTitle("登录");
         initView();
-        initSMS();
         loadBingPic();
         showContentView();
-    }
-
-    @Override
-    protected void onDestroy() {
-        cn.smssdk.SMSSDK.unregisterEventHandler(eventHandler);
-        super.onDestroy();
     }
 
     public static void start(Context context) {
@@ -72,8 +62,8 @@ public class RegisterActivity extends BaseActivity<ActivityRegisterBinding> impl
     private void initView() {
         getRootPic().setAlpha(0.7f);
         toolbar = getToolBar();
-        phone = bindingView.phone;
-        getVerificationCode = bindingView.getVerificationCode;
+        userName = bindingView.userName;
+        confirm = bindingView.confirm;
         toolbar.setBackgroundResource(R.color.Black);
         setSupportActionBar(toolbar);
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
@@ -83,27 +73,9 @@ public class RegisterActivity extends BaseActivity<ActivityRegisterBinding> impl
                 onBackPressed();
             }
         });
-        phone.addTextChangedListener(this);
-        getVerificationCode.setOnClickListener(this);
-        getVerificationCode.setClickable(false);
+        userName.addTextChangedListener(this);
+        confirm.setOnClickListener(this);
         getRootPic().setVisibility(View.VISIBLE);
-    }
-
-    private void initSMS() {
-        cn.smssdk.SMSSDK.initSDK(this, "1e2481279d874", "88b7b1d5f46e5063b79146bd7e9e3c07");
-        eventHandler = new EventHandler() {
-            @Override
-            public void afterEvent(int event, int result, Object data) {
-                if (result == cn.smssdk.SMSSDK.RESULT_COMPLETE) {
-                    if (event == cn.smssdk.SMSSDK.EVENT_SUBMIT_VERIFICATION_CODE) {
-
-                    }
-                } else {
-                    ((Throwable)data).printStackTrace();
-                }
-            }
-        };
-        cn.smssdk.SMSSDK.registerEventHandler(eventHandler);
     }
 
     private void loadBingPic(){
@@ -136,12 +108,7 @@ public class RegisterActivity extends BaseActivity<ActivityRegisterBinding> impl
 
     @Override
     public void onTextChanged(CharSequence s, int start, int before, int count) {
-        if (s.length() == 11) {
-            getVerificationCode.setClickable(true);
-            strPhone = s.toString();
-        } else {
-            getVerificationCode.setClickable(false);
-        }
+        strUserName = s.toString();
     }
 
     @Override
@@ -151,15 +118,33 @@ public class RegisterActivity extends BaseActivity<ActivityRegisterBinding> impl
     @Override
     public void onClick(View v) {
         switch (v.getId()) {
-            case R.id.get_verification_code:
-                SMSLog.getInstance().i("verification phone ==>>" + strPhone);
-                cn.smssdk.SMSSDK.getVerificationCode("+" + cn.smssdk.SMSSDK.getCountry(DEFAULT_COUNTRY_ID)[1], strPhone, osmHandler);
-                Intent intent = new Intent(RegisterActivity.this, LoginActivity.class);
-                if (strPhone.length() == 11) {
-                    intent.putExtra("phone", strPhone);
-                    startActivity(intent);
-                } else {
-                    Toast.makeText(this, "手机号输入有误", Toast.LENGTH_SHORT).show();
+            case R.id.confirm:
+                if (strUserName.length() < 5 || strUserName.length() > 11) {
+                    Toast.makeText(this, "用户名不合法", Toast.LENGTH_SHORT).show();
+                    return;
+                }
+                final Intent intent = new Intent(this, LoginActivity.class);
+                AVQuery<AVUser> query = AVUser.getQuery();
+                try {
+                    query.whereEqualTo("username", strUserName);
+                    query.getFirstInBackground(new GetCallback<AVUser>() {
+                        @Override
+                        public void done(AVUser avUser, AVException e) {
+                            Boolean isSigned = false;
+                            if (e == null) {
+                                if (avUser != null) {
+                                    isSigned = true;
+                                }
+                            } else {
+                                e.printStackTrace();
+                            }
+                            intent.putExtra("userName", strUserName);
+                            intent.putExtra("isSigned", isSigned);
+                            startActivity(intent);
+                        }
+                    });
+                } catch (Exception e) {
+                    e.printStackTrace();
                 }
             break;
         }
