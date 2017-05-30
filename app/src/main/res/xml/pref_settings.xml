@@ -1,6 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
 <PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
 
+    <ListPreference
+        android:key="pref_key_choose_current_city"
+        android:title="选择当前城市" />
+
     <SwitchPreference
         android:key="@string/pref_key_weather_alerts_morning"
         android:title="@string/pref_summary_weather_alters_morning" />
@@ -8,9 +12,5 @@
     <SwitchPreference
         android:key="@string/pref_key_weather_alerts_night"
         android:title="@string/pref_summary_weather_alters_night" />
-
-    <ListPreference
-        android:key="pref_key_choose_current_city"
-        android:title="选择当前城市" />
 
 </PreferenceScreen>

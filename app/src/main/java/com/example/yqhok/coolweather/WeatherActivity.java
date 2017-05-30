@@ -48,6 +48,8 @@ import okhttp3.Response;
 
 public class WeatherActivity extends BaseActivity<ActivityWeatherBinding> implements SwipeRefreshLayout.OnRefreshListener, NavigationView.OnNavigationItemSelectedListener, View.OnClickListener {
 
+    private Intent intent;
+
     private Toolbar toolbar;
     private ScrollView weatherLayout;
     private TextView degreeText;
@@ -77,20 +79,31 @@ public class WeatherActivity extends BaseActivity<ActivityWeatherBinding> implem
             getWindow().setStatusBarColor(Color.TRANSPARENT);
         }
         setContentView(R.layout.activity_weather);
-        initView();
         initData();
+        initView();
         showContentView();
     }
 
     @Override
     protected void onResume() {
         super.onResume();
+        initMenu();
         onRefresh();
     }
 
     public static void start(Context context) {
         Intent intent = new Intent(context, WeatherActivity.class);
         context.startActivity(intent);
+    }
+
+    private void initData() {
+        intent = getIntent();
+        String flag = intent.getStringExtra("flag");
+        if (flag != null && flag.equals("loadData")) {
+            Utility.LoadDataTask task = new Utility.LoadDataTask();
+            task.execute();
+            while (!task.isFinished);
+        }
     }
 
     private void initView() {
@@ -130,44 +143,44 @@ public class WeatherActivity extends BaseActivity<ActivityWeatherBinding> implem
         navigationView.inflateHeaderView(R.layout.nav_header);
         navigationView.inflateMenu(R.menu.nav_menu);
         navigationView.setNavigationItemSelectedListener(this);
-        WeatherInfo weather = DataSupport.where("isCurrent = ?", "true").findFirst(WeatherInfo.class);
-        if (weather != null) {
-            navigationView.getMenu().add(R.id.choose_city, 0, 0, weather.getCityName()).setIcon(R.drawable.city);
-            List<WeatherInfo> weatherList = DataSupport.where("isCurrent = ?", "false").find(WeatherInfo.class);
-            for (int i = 1; i < weatherList.size() + 1; i ++) {
-                navigationView.getMenu().add(R.id.choose_city, i, i, weatherList.get(i).getCityName()).setIcon(R.drawable.city);
-            }
-        } else {
-            List<WeatherInfo> weatherList = DataSupport.findAll(WeatherInfo.class);
-            for (int i = 0; i < weatherList.size(); i ++) {
-                navigationView.getMenu().add(R.id.choose_city, i, i, weatherList.get(i).getCityName()).setIcon(R.drawable.city);
-            }
-        }
+        initMenu();
         swipeRefresh.setOnRefreshListener(this);
-        swipeRefresh.setColorSchemeResources(R.color.Red);
+        swipeRefresh.setColorSchemeResources(R.color.Blue);
         fab.setOnClickListener(this);
         fab.setBackgroundResource(android.R.color.transparent);
-        getRootPic().setVisibility(View.VISIBLE);
-    }
-
-    private void initData() {
         SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(this);
         String weatherString = prefs.getString("weather", null);
-        Intent intent = getIntent();
         if (intent.hasExtra("weather_id")) {
-            mWeatherId = getIntent().getStringExtra("weather_id");
+            mWeatherId = intent.getStringExtra("weather_id");
             weatherLayout.setVisibility(View.INVISIBLE);
             requestWeather(mWeatherId);
         } else if (weatherString != null) {
-            Weather weather = Utility.handleWeatherResponse(weatherString);
-            mWeatherId = weather.basic.weatherId;
-            showWeatherInfo(weather);
+            Weather currentWeather = Utility.handleWeatherResponse(weatherString);
+            mWeatherId = currentWeather.basic.weatherId;
+            showWeatherInfo(currentWeather);
         }
         String bingPic = prefs.getString("bing_pic", null);
         if (bingPic != null) {
             Glide.with(this).load(bingPic).into(getRootPic());
         } else {
             loadBingPic();
+        }
+        getRootPic().setVisibility(View.VISIBLE);
+    }
+
+    private void initMenu() {
+        WeatherInfo weather = DataSupport.where("isCurrent = ?", "1").findFirst(WeatherInfo.class);
+        List<WeatherInfo> weatherList = DataSupport.findAll(WeatherInfo.class);
+        if (weather != null) {
+            navigationView.getMenu().clear();
+            navigationView.getMenu().add(R.id.choose_city, 0, 0, weather.getCityName()).setIcon(R.drawable.city);
+            for (int i = 0, j = 1; i < weatherList.size(); i ++, j ++) {
+                if (weatherList.get(i).getIsCurrent()) {
+                    j --;
+                } else {
+                    navigationView.getMenu().add(R.id.choose_city, j, j, weatherList.get(i).getCityName()).setIcon(R.drawable.city);
+                }
+            }
         }
     }
 
@@ -187,14 +200,22 @@ public class WeatherActivity extends BaseActivity<ActivityWeatherBinding> implem
                     WeatherInfo currentWeather = DataSupport.where("weatherId = ?", mWeatherId).findFirst(WeatherInfo.class);
                     if (currentWeather == null) {
                         currentWeather = new WeatherInfo();
+                        if (!DataSupport.isExist(WeatherInfo.class)) {
+                            currentWeather.setIsCurrent(true);
+                        }
                         currentWeather.setWeatherId(weather.basic.weatherId);
-                        currentWeather.setIsCurrent(true);
                     }
                     currentWeather.setCityName(weather.basic.cityName);
                     currentWeather.setMin(weather.forecastList.get(0).temperature.min);
                     currentWeather.setMax(weather.forecastList.get(0).temperature.max);
                     currentWeather.setInfo(weather.now.more.info);
                     currentWeather.save();
+                    new Thread(new Runnable() {
+                        @Override
+                        public void run() {
+                            Utility.updateUserData();
+                        }
+                    }).start();
                     runOnUiThread(new Runnable() {
                         @Override
                         public void run() {
@@ -226,7 +247,6 @@ public class WeatherActivity extends BaseActivity<ActivityWeatherBinding> implem
             }
 
         });
-        loadBingPic();
     }
 
     private void showWeatherInfo(Weather weather) {
@@ -336,11 +356,9 @@ public class WeatherActivity extends BaseActivity<ActivityWeatherBinding> implem
                     WeatherInfo weather = DataSupport.where("cityName = ?", item.getTitle().toString()).findFirst(WeatherInfo.class);
                     mWeatherId = weather.getWeatherId();
                     navigationView.getMenu().clear();
-                    List<WeatherInfo> weatherList = DataSupport.findAll(WeatherInfo.class);
-                    for (int i = 0; i < weatherList.size(); i ++) {
-                        navigationView.getMenu().add(R.id.choose_city, i, i, weatherList.get(i).getCityName()).setIcon(R.drawable.city);
-                    }
+                    initMenu();
                     onRefresh();
+                    Utility.updateUserData();
                 }
                 break;
         }
@@ -352,7 +370,9 @@ public class WeatherActivity extends BaseActivity<ActivityWeatherBinding> implem
         switch (v.getId()) {
             case R.id.fab:
                 drawerLayout.closeDrawers();
-                ChooseAreaActivity.start(this);
+                Intent intent = new Intent(this, ChooseAreaActivity.class);
+                intent.putExtra("flag", "WeatherActivity");
+                startActivity(intent);
                 finish();
                 break;
         }

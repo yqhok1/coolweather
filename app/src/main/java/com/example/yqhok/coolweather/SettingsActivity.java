@@ -32,7 +32,6 @@ public class SettingsActivity extends BaseActivity<ActivitySettingsBinding> {
         final SettingsFragment settingsFragment = new SettingsFragment();
         getFragmentManager().beginTransaction().replace(R.id.settings_frame_layout, settingsFragment).commit();
         setTitle("设置");
-        initView();
         showContentView();
     }
 
@@ -41,15 +40,11 @@ public class SettingsActivity extends BaseActivity<ActivitySettingsBinding> {
         context.startActivity(intent);
     }
 
-    private void initView() {
-
-    }
-
     public static class SettingsFragment extends PreferenceFragment implements Preference.OnPreferenceChangeListener, Preference.OnPreferenceClickListener {
 
+        private ListPreference chooseCurrentCityPref;
         private SwitchPreference weatherAlertsMorningPref;
         private SwitchPreference weatherAlertsNightPref;
-        private ListPreference chooseCurrentCityPref;
 
         @Override
         public void onCreate(@Nullable Bundle savedInstanceState) {
@@ -70,14 +65,14 @@ public class SettingsActivity extends BaseActivity<ActivitySettingsBinding> {
         }
 
         private void register() {
+            chooseCurrentCityPref = (ListPreference) findPreference("pref_key_choose_current_city");
+            chooseCurrentCityPref.setOnPreferenceChangeListener(this);
             weatherAlertsMorningPref = (SwitchPreference) findPreference("pref_key_weather_alerts_morning");
             weatherAlertsMorningPref.setOnPreferenceChangeListener(this);
             weatherAlertsMorningPref.setOnPreferenceClickListener(this);
             weatherAlertsNightPref = (SwitchPreference) findPreference("pref_key_weather_alerts_night");
             weatherAlertsNightPref.setOnPreferenceChangeListener(this);
             weatherAlertsNightPref.setOnPreferenceClickListener(this);
-            chooseCurrentCityPref = (ListPreference) findPreference("pref_key_choose_current_city");
-            chooseCurrentCityPref.setOnPreferenceClickListener(this);
             List<WeatherInfo> weatherList = DataSupport.findAll(WeatherInfo.class);
             List<String> cityNameList = new ArrayList<>();
             for (WeatherInfo weather : weatherList) {
@@ -85,7 +80,7 @@ public class SettingsActivity extends BaseActivity<ActivitySettingsBinding> {
             }
             chooseCurrentCityPref.setEntries(cityNameList.toArray(new String[cityNameList.size()]));
             chooseCurrentCityPref.setEntryValues(cityNameList.toArray(new String[cityNameList.size()]));
-            String s = chooseCurrentCityPref.getValue();
+            String s = DataSupport.where("isCurrent = ?", "1").findFirst(WeatherInfo.class).getCityName();
             if (s != null) {
                 chooseCurrentCityPref.setSummary(s);
             }
@@ -94,10 +89,26 @@ public class SettingsActivity extends BaseActivity<ActivitySettingsBinding> {
         @Override
         public boolean onPreferenceChange(Preference preference, Object newValue) {
             SharedPreferences.Editor editor = MyApplication.getContext().getSharedPreferences("pref", MODE_PRIVATE).edit();
-            Boolean checked = (Boolean) newValue;
             switch (preference.getKey()) {
+                case "pref_key_choose_current_city":
+                    if (DataSupport.isExist(WeatherInfo.class)) {
+                        List<WeatherInfo> weatherList = DataSupport.findAll(WeatherInfo.class);
+                        for (WeatherInfo weatherInfo : weatherList) {
+                            weatherInfo.setIsCurrent(false);
+                            weatherInfo.save();
+                        }
+                    }
+                    String cityName = chooseCurrentCityPref.getEntries()[chooseCurrentCityPref.findIndexOfValue(newValue.toString())].toString();
+                    chooseCurrentCityPref.setSummary(cityName);
+                    WeatherInfo weather = DataSupport.where("cityName = ?", cityName).findFirst(WeatherInfo.class);
+                    if (weather != null) {
+                        weather.setIsCurrent(true);
+                        weather.save();
+                    }
+                    break;
                 case "pref_key_weather_alerts_morning":
-                    if (checked) {
+                    Boolean morningChecked = (Boolean) newValue;
+                    if (morningChecked) {
                         editor.putBoolean("pref_key_weather_alerts_morning", true);
                     } else {
                         editor.putBoolean("pref_key_weather_alerts_morning", false);
@@ -107,7 +118,8 @@ public class SettingsActivity extends BaseActivity<ActivitySettingsBinding> {
                     editor.apply();
                     break;
                 case "pref_key_weather_alerts_night":
-                    if (checked) {
+                    Boolean nightChecked = (Boolean) newValue;
+                    if (nightChecked) {
                         editor.putBoolean("pref_key_weather_alerts_night", true);
                     } else {
                         editor.putBoolean("pref_key_weather_alerts_night", false);
@@ -179,19 +191,6 @@ public class SettingsActivity extends BaseActivity<ActivitySettingsBinding> {
                         timePickerDialog.setMessage("请选择时间");
                         timePickerDialog.show();
                     }
-                    break;
-                case "pref_key_choose_current_city":
-                    chooseCurrentCityPref.setSummary(chooseCurrentCityPref.getValue());
-                    if (DataSupport.isExist(WeatherInfo.class)) {
-                        List<WeatherInfo> weatherList = DataSupport.findAll(WeatherInfo.class);
-                        for (WeatherInfo weatherInfo : weatherList) {
-                            weatherInfo.setIsCurrent(false);
-                            weatherInfo.save();
-                        }
-                    }
-                    WeatherInfo weather = DataSupport.where("cityName = ?", chooseCurrentCityPref.getValue()).findFirst(WeatherInfo.class);
-                    weather.setIsCurrent(true);
-                    weather.save();
                     break;
             }
             return true;

@@ -81,7 +81,17 @@ public class ChooseAreaActivity extends BaseActivity<ActivityChooseAreaBinding> 
     @Override
     public void onBackPressed() {
         super.onBackPressed();
-        WeatherActivity.start(this);
+        Intent intent = getIntent();
+        String flag = intent.getStringExtra("flag");
+        if (flag != null) {
+            if (flag.equals("WeatherActivity")) {
+                WeatherActivity.start(this);
+                ChooseAreaActivity.this.finish();
+            } else if (flag.equals("LoginActivity") || flag.equals("HomeActivity")) {
+                HomeActivity.start(this);
+                ChooseAreaActivity.this.finish();
+            }
+        }
     }
 
     public static void start(Context context) {

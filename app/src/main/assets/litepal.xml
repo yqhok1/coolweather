@@ -2,7 +2,7 @@
 
     <dbname value="CoolWeather" />
 
-    <version value="6" />
+    <version value="7" />
 
     <list>
         <mapping class="com.example.yqhok.coolweather.db.Province" />

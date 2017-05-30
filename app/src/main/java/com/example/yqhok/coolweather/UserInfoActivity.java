@@ -88,4 +88,5 @@ public class UserInfoActivity extends BaseActivity<ActivityUserInfoBinding> impl
                 break;
         }
     }
+
 }

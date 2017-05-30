@@ -27,6 +27,7 @@ import com.example.yqhok.coolweather.WeatherActivity;
 import com.example.yqhok.coolweather.base.BaseActivity;
 import com.example.yqhok.coolweather.databinding.ActivityLoginBinding;
 import com.example.yqhok.coolweather.util.HttpUtil;
+import com.example.yqhok.coolweather.util.Utility;
 
 import java.io.IOException;
 
@@ -37,6 +38,7 @@ import okhttp3.Response;
 public class LoginActivity extends BaseActivity<ActivityLoginBinding> implements TextWatcher, View.OnClickListener {
 
     private Toolbar toolbar;
+    private TextView info;
     private TextView hint;
     private EditText password;
     private Button confirm;
@@ -65,12 +67,13 @@ public class LoginActivity extends BaseActivity<ActivityLoginBinding> implements
         Intent intent = getIntent();
         strUserName = intent.getStringExtra("userName");
         isSigned = intent.getBooleanExtra("isSigned", false);
+        info = bindingView.info;
         hint = bindingView.hint;
         password = bindingView.password;
         confirm = bindingView.confirm;
         if (isSigned) {
             confirm.setText("登录");
-            hint.setVisibility(View.INVISIBLE);
+            info.setVisibility(View.INVISIBLE);
         } else {
             confirm.setText("注册");
         }
@@ -116,7 +119,6 @@ public class LoginActivity extends BaseActivity<ActivityLoginBinding> implements
 
     @Override
     public void beforeTextChanged(CharSequence s, int start, int count, int after) {
-
     }
 
     @Override
@@ -126,7 +128,6 @@ public class LoginActivity extends BaseActivity<ActivityLoginBinding> implements
 
     @Override
     public void afterTextChanged(Editable s) {
-
     }
 
     @Override
@@ -138,8 +139,18 @@ public class LoginActivity extends BaseActivity<ActivityLoginBinding> implements
                         @Override
                         public void done(AVUser avUser, AVException e) {
                             if (e == null) {
-                                WeatherActivity.start(LoginActivity.this);
-                                LoginActivity.this.finish();
+                                if (avUser.get("currentCityId") != null) {
+                                    Utility.LoadDataTask task = new Utility.LoadDataTask();
+                                    task.execute();
+                                    while (!task.isFinished);
+                                    WeatherActivity.start(LoginActivity.this);
+                                    LoginActivity.this.finish();
+                                } else {
+                                    Intent intent = new Intent(LoginActivity.this, ChooseAreaActivity.class);
+                                    intent.putExtra("flag", "LoginActivity");
+                                    startActivity(intent);
+                                    LoginActivity.this.finish();
+                                }
                             } else {
                                 e.printStackTrace();
                             }
@@ -155,10 +166,15 @@ public class LoginActivity extends BaseActivity<ActivityLoginBinding> implements
                             if (e == null) {
                                 SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(MyApplication.getContext());
                                 if (preferences.getString("weather", null) != null) {
-                                    WeatherActivity.start(LoginActivity.this);
+                                    Utility.updateUserData();
+                                    Intent intent = new Intent(LoginActivity.this, WeatherActivity.class);
+                                    intent.putExtra("flag", "loadData");
+                                    startActivity(intent);
                                     LoginActivity.this.finish();
                                 } else {
-                                    ChooseAreaActivity.start(LoginActivity.this);
+                                    Intent intent = new Intent(LoginActivity.this, ChooseAreaActivity.class);
+                                    intent.putExtra("flag", "LoginActivity");
+                                    startActivity(intent);
                                     LoginActivity.this.finish();
                                 }
                             } else {

@@ -124,23 +124,24 @@ public class RegisterActivity extends BaseActivity<ActivityRegisterBinding> impl
                     return;
                 }
                 final Intent intent = new Intent(this, LoginActivity.class);
-                AVQuery<AVUser> query = AVUser.getQuery();
+                AVQuery<AVUser> query = new AVQuery<>("_User");
                 try {
                     query.whereEqualTo("username", strUserName);
                     query.getFirstInBackground(new GetCallback<AVUser>() {
                         @Override
                         public void done(AVUser avUser, AVException e) {
                             Boolean isSigned = false;
-                            if (e == null) {
+                            if (e != null) {
+                                e.printStackTrace();
+                                Toast.makeText(RegisterActivity.this, "未知错误", Toast.LENGTH_SHORT).show();
+                            } else {
                                 if (avUser != null) {
                                     isSigned = true;
                                 }
-                            } else {
-                                e.printStackTrace();
+                                intent.putExtra("userName", strUserName);
+                                intent.putExtra("isSigned", isSigned);
+                                startActivity(intent);
                             }
-                            intent.putExtra("userName", strUserName);
-                            intent.putExtra("isSigned", isSigned);
-                            startActivity(intent);
                         }
                     });
                 } catch (Exception e) {

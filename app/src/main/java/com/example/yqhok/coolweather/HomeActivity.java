@@ -1,19 +1,26 @@
 package com.example.yqhok.coolweather;
 
+import android.content.Context;
+import android.content.DialogInterface;
+import android.content.Intent;
 import android.content.SharedPreferences;
 import android.graphics.Color;
 import android.os.Build;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
+import android.support.v7.app.AlertDialog;
 import android.support.v7.widget.Toolbar;
 import android.view.View;
 import android.widget.Button;
+import android.widget.TextView;
 
+import com.avos.avoscloud.AVUser;
 import com.bumptech.glide.Glide;
 import com.example.yqhok.coolweather.base.BaseActivity;
 import com.example.yqhok.coolweather.databinding.ActivityHomeBinding;
 import com.example.yqhok.coolweather.login.RegisterActivity;
 import com.example.yqhok.coolweather.util.HttpUtil;
+import com.example.yqhok.coolweather.util.Utility;
 
 import java.io.IOException;
 
@@ -24,6 +31,7 @@ import okhttp3.Response;
 public class HomeActivity extends BaseActivity<ActivityHomeBinding> implements View.OnClickListener {
 
     private Toolbar toolbar;
+    private TextView info;
     private Button login;
     private Button chooseArea;
 
@@ -37,13 +45,25 @@ public class HomeActivity extends BaseActivity<ActivityHomeBinding> implements V
         }
         setContentView(R.layout.activity_home);
         initView();
-        initData();
         loadBingPic();
         showContentView();
+        initData();
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        initData();
+    }
+
+    public static void start(Context context) {
+        Intent intent = new Intent(context, HomeActivity.class);
+        context.startActivity(intent);
     }
 
     private void initView() {
         toolbar = getToolBar();
+        info = bindingView.info;
         login = bindingView.actionLogin;
         chooseArea = bindingView.actionChooseArea;
         toolbar.setBackgroundResource(R.color.Black);
@@ -52,13 +72,25 @@ public class HomeActivity extends BaseActivity<ActivityHomeBinding> implements V
         toolbar.setTitle("CoolWeather");
         login.setOnClickListener(this);
         chooseArea.setOnClickListener(this);
-        getRootPic().setVisibility(View.VISIBLE);
     }
 
     private void initData() {
         SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(this);
         if (preferences.getString("weather", null) != null) {
             WeatherActivity.start(this);
+        }
+        AVUser user = AVUser.getCurrentUser();
+        if (user != null) {
+            if (user.get("currentCityId") != null) {
+                Utility.LoadDataTask task = new Utility.LoadDataTask();
+                task.execute();
+                while (!task.isFinished);
+                WeatherActivity.start(HomeActivity.this);
+                HomeActivity.this.finish();
+            } else {
+                login.setText("退出登录");
+                info.setVisibility(View.INVISIBLE);
+            }
         }
     }
 
@@ -84,13 +116,30 @@ public class HomeActivity extends BaseActivity<ActivityHomeBinding> implements V
                 });
             }
         });
+        getRootPic().setVisibility(View.VISIBLE);
     }
 
     @Override
     public void onClick(View v) {
         switch (v.getId()) {
             case R.id.action_login:
-                RegisterActivity.start(this);
+                if (login.getText().toString().equals("退出登录")) {
+                    AlertDialog.Builder dialog = new AlertDialog.Builder(HomeActivity.this);
+                    dialog.setTitle("确定要退出？");
+                    dialog.setCancelable(true);
+                    dialog.setPositiveButton("确定", new DialogInterface.OnClickListener() {
+                        @Override
+                        public void onClick(DialogInterface dialog, int which) {
+                            AVUser.logOut();
+                            info.setVisibility(View.VISIBLE);
+                            login.setText("注册或登录");
+                        }
+                    });
+                    dialog.setNegativeButton("取消", null);
+                    dialog.show();
+                } else {
+                    RegisterActivity.start(this);
+                }
                 break;
             case R.id.action_choose_area:
                 ChooseAreaActivity.start(this);
