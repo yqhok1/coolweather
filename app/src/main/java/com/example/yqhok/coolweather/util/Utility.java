@@ -8,7 +8,7 @@ import android.text.TextUtils;
 import com.avos.avoscloud.AVException;
 import com.avos.avoscloud.AVUser;
 import com.avos.avoscloud.SaveCallback;
-import com.example.yqhok.coolweather.MyApplication;
+import com.example.yqhok.coolweather.application.MyApplication;
 import com.example.yqhok.coolweather.db.City;
 import com.example.yqhok.coolweather.db.County;
 import com.example.yqhok.coolweather.db.Province;

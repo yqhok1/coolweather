@@ -142,7 +142,9 @@ public class HomeActivity extends BaseActivity<ActivityHomeBinding> implements V
                 }
                 break;
             case R.id.action_choose_area:
-                ChooseAreaActivity.start(this);
+                Intent intent = new Intent(this, ChooseAreaActivity.class);
+                intent.putExtra("flag", "HomeActivity");
+                startActivity(intent);
                 break;
         }
     }

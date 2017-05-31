@@ -3,13 +3,13 @@ package com.example.yqhok.coolweather;
 import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
-import android.view.View;
-import android.widget.AdapterView;
-import android.widget.ArrayAdapter;
-import android.widget.ListView;
+import android.support.v7.widget.LinearLayoutManager;
+import android.support.v7.widget.RecyclerView;
 import android.widget.Toast;
 
+import com.example.yqhok.coolweather.adapter.ChooseAreaAdapter;
 import com.example.yqhok.coolweather.base.BaseActivity;
+import com.example.yqhok.coolweather.base.adapter.BaseRecyclerViewAdapter;
 import com.example.yqhok.coolweather.databinding.ActivityChooseAreaBinding;
 import com.example.yqhok.coolweather.db.City;
 import com.example.yqhok.coolweather.db.County;
@@ -27,15 +27,16 @@ import okhttp3.Call;
 import okhttp3.Callback;
 import okhttp3.Response;
 
-public class ChooseAreaActivity extends BaseActivity<ActivityChooseAreaBinding> implements ListView.OnItemClickListener {
+public class ChooseAreaActivity extends BaseActivity<ActivityChooseAreaBinding> implements BaseRecyclerViewAdapter.OnItemClickListener<String> {
 
     public static final int LEVEL_PROVINCE = 0;
     public static final int LEVEL_CITY = 1;
     public static final int LEVEL_COUNTY = 2;
 
-    private ListView listView;
+    private RecyclerView recyclerView;
 
-    private ArrayAdapter<String> adapter;
+    private ChooseAreaAdapter adapter;
+
     private List<String> dataList = new ArrayList<>();
 
     /**
@@ -73,24 +74,27 @@ public class ChooseAreaActivity extends BaseActivity<ActivityChooseAreaBinding> 
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_choose_area);
         initView();
-        setTitle("请选择地区");
         queryProvinces();
         showContentView();
     }
 
     @Override
     public void onBackPressed() {
-        super.onBackPressed();
         Intent intent = getIntent();
         String flag = intent.getStringExtra("flag");
         if (flag != null) {
-            if (flag.equals("WeatherActivity")) {
+            if (currentLevel == LEVEL_PROVINCE && flag.equals("WeatherActivity")) {
                 WeatherActivity.start(this);
                 ChooseAreaActivity.this.finish();
             } else if (flag.equals("LoginActivity") || flag.equals("HomeActivity")) {
                 HomeActivity.start(this);
                 ChooseAreaActivity.this.finish();
             }
+        }
+        if (currentLevel == LEVEL_COUNTY) {
+            queryCities();
+        } else if (currentLevel == LEVEL_CITY) {
+            queryProvinces();
         }
     }
 
@@ -100,27 +104,12 @@ public class ChooseAreaActivity extends BaseActivity<ActivityChooseAreaBinding> 
     }
 
     private void initView() {
-        listView = bindingView.listView;
-        listView.setOnItemClickListener(this);
-        adapter = new ArrayAdapter<>(this, android.R.layout.simple_list_item_1, dataList);
-        listView.setAdapter(adapter);
-    }
-
-    @Override
-    public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-        if (currentLevel == LEVEL_PROVINCE) {
-            selectedProvince = provinceList.get(position);
-            queryCities();
-        } else if (currentLevel == LEVEL_CITY) {
-            selectedCity = cityList.get(position);
-            queryCounties();
-        } else if (currentLevel == LEVEL_COUNTY) {
-            String weatherId = countyList.get(position).getWeatherId();
-            Intent intent = new Intent(this, WeatherActivity.class);
-            intent.putExtra("weather_id", weatherId);
-            startActivity(intent);
-            finish();
-        }
+        recyclerView = bindingView.recyclerView;
+        adapter = new ChooseAreaAdapter();
+        LinearLayoutManager manager = new LinearLayoutManager(this);
+        recyclerView.setLayoutManager(manager);
+        recyclerView.setAdapter(adapter);
+        adapter.setOnItemClickListener(this);
     }
 
     /**
@@ -134,8 +123,10 @@ public class ChooseAreaActivity extends BaseActivity<ActivityChooseAreaBinding> 
             for (Province province : provinceList) {
                 dataList.add(province.getProvinceName());
             }
+            adapter.removeAll();
+            adapter.addAll(dataList);
             adapter.notifyDataSetChanged();
-            listView.setSelection(0);
+            recyclerView.scrollToPosition(0);
             currentLevel = LEVEL_PROVINCE;
         } else {
             String address = "http://guolin.tech/api/china";
@@ -154,8 +145,10 @@ public class ChooseAreaActivity extends BaseActivity<ActivityChooseAreaBinding> 
             for (City city : cityList) {
                 dataList.add(city.getCityName());
             }
+            adapter.removeAll();
+            adapter.addAll(dataList);
             adapter.notifyDataSetChanged();
-            listView.setSelection(0);
+            recyclerView.scrollToPosition(0);
             currentLevel = LEVEL_CITY;
         } else {
             int provinceCode = selectedProvince.getProvinceCode();
@@ -175,8 +168,10 @@ public class ChooseAreaActivity extends BaseActivity<ActivityChooseAreaBinding> 
             for (County county : countyList) {
                 dataList.add(county.getCountyName());
             }
+            adapter.removeAll();
+            adapter.addAll(dataList);
             adapter.notifyDataSetChanged();
-            listView.setSelection(0);
+            recyclerView.scrollToPosition(0);
             currentLevel = LEVEL_COUNTY;
         } else {
             int provinceCode = selectedProvince.getProvinceCode();
@@ -230,6 +225,23 @@ public class ChooseAreaActivity extends BaseActivity<ActivityChooseAreaBinding> 
                 }
             }
         });
+    }
+
+    @Override
+    public void onClick(String s, int position) {
+        if (currentLevel == LEVEL_PROVINCE) {
+            selectedProvince = provinceList.get(position);
+            queryCities();
+        } else if (currentLevel == LEVEL_CITY) {
+            selectedCity = cityList.get(position);
+            queryCounties();
+        } else if (currentLevel == LEVEL_COUNTY) {
+            String weatherId = countyList.get(position).getWeatherId();
+            Intent intent = new Intent(ChooseAreaActivity.this, WeatherActivity.class);
+            intent.putExtra("weather_id", weatherId);
+            startActivity(intent);
+            finish();
+        }
     }
 
 }

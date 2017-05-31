@@ -22,6 +22,10 @@ public abstract class BaseRecyclerViewAdapter<T> extends RecyclerView.Adapter<Ba
         this.dataList.addAll(data);
     }
 
+    public void removeAll() {
+        this.dataList.clear();
+    }
+
     @Override
     public void onBindViewHolder(BaseRecyclerViewHolder holder, int position) {
         holder.onBaseBindViewHolder(dataList.get(position), position);

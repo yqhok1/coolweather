@@ -212,8 +212,8 @@ public class WeatherActivity extends BaseActivity<ActivityWeatherBinding> implem
                         currentWeather.setWeatherId(weather.basic.weatherId);
                     }
                     currentWeather.setCityName(weather.basic.cityName);
-                    currentWeather.setMin(weather.forecastList.get(0).temperature.min);
-                    currentWeather.setMax(weather.forecastList.get(0).temperature.max);
+                    currentWeather.setMin(weather.forecastList.get(0).temperature.min + "℃");
+                    currentWeather.setMax(weather.forecastList.get(0).temperature.max + "℃");
                     currentWeather.setInfo(weather.now.more.info);
                     currentWeather.save();
                     new Thread(new Runnable() {

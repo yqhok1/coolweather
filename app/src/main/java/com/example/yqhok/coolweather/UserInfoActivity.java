@@ -9,6 +9,7 @@ import android.preference.PreferenceManager;
 import android.support.v7.app.AlertDialog;
 import android.view.View;
 import android.widget.Button;
+import android.widget.TextView;
 
 import com.avos.avoscloud.AVUser;
 import com.bumptech.glide.Glide;
@@ -24,6 +25,7 @@ import okhttp3.Response;
 
 public class UserInfoActivity extends BaseActivity<ActivityUserInfoBinding> implements View.OnClickListener {
 
+    private TextView userName;
     private Button exit;
 
     @Override
@@ -41,7 +43,10 @@ public class UserInfoActivity extends BaseActivity<ActivityUserInfoBinding> impl
     }
 
     private void initView() {
+        userName = bindingView.userName;
         exit = bindingView.exit;
+        AVUser user = AVUser.getCurrentUser();
+        userName.setText(user.getUsername());
         exit.setOnClickListener(this);
     }
 

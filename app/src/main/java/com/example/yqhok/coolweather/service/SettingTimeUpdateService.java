@@ -9,6 +9,7 @@ import android.content.SharedPreferences;
 import android.graphics.BitmapFactory;
 import android.os.IBinder;
 import android.support.v4.app.NotificationCompat;
+import android.util.Log;
 
 import com.example.yqhok.coolweather.R;
 import com.example.yqhok.coolweather.WeatherActivity;
@@ -47,7 +48,9 @@ public class SettingTimeUpdateService extends Service {
         if (setTime == null) {
             return;
         }
+        final WeatherInfo weather = DataSupport.where("isCurrent = ?", "1").findFirst(WeatherInfo.class);
         Intent i = new Intent(this, WeatherActivity.class);
+        i.putExtra("weather_id", weather.getWeatherId());
         final PendingIntent pi = PendingIntent.getActivity(this, 0, i, 0);
         final Calendar time = Calendar.getInstance();
         String hour = setTime.substring(0, 2);
@@ -58,10 +61,9 @@ public class SettingTimeUpdateService extends Service {
         time.set(Calendar.MINUTE, m);
         time.set(Calendar.SECOND, 00);
         Date date = time.getTime();
-        if(date.before(new Date())){
+        if(date.before(new Date())) {
             date = this.addDate(date, 1);
         }
-        final WeatherInfo weather = DataSupport.where("isCurrent = ?", "true").findFirst(WeatherInfo.class);
         final long Period = 24 * 60 * 60 * 1000;
         java.util.Timer timer = new java.util.Timer(true);
         final TimerTask task = new TimerTask() {
@@ -81,6 +83,7 @@ public class SettingTimeUpdateService extends Service {
             }
         };
         timer.schedule(task, date, Period);
+        Log.e("here", "here");
     }
 
     private Date addDate(Date date, int num) {

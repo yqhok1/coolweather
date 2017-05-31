@@ -13,6 +13,7 @@ import android.preference.SwitchPreference;
 import android.support.annotation.Nullable;
 import android.widget.TimePicker;
 
+import com.example.yqhok.coolweather.application.MyApplication;
 import com.example.yqhok.coolweather.base.BaseActivity;
 import com.example.yqhok.coolweather.databinding.ActivitySettingsBinding;
 import com.example.yqhok.coolweather.db.WeatherInfo;
@@ -83,6 +84,19 @@ public class SettingsActivity extends BaseActivity<ActivitySettingsBinding> {
             String s = DataSupport.where("isCurrent = ?", "1").findFirst(WeatherInfo.class).getCityName();
             if (s != null) {
                 chooseCurrentCityPref.setSummary(s);
+            }
+            SharedPreferences preferences = MyApplication.getContext().getSharedPreferences("pref", MODE_PRIVATE);
+            if (weatherAlertsMorningPref.isChecked()) {
+                String time = preferences.getString("pref_key_weather_alerts_time_morning", null);
+                if (time != null) {
+                    weatherAlertsMorningPref.setSummaryOn(time);
+                }
+            }
+            if (weatherAlertsNightPref.isChecked()) {
+                String time = preferences.getString("pref_key_weather_alerts_time_night", null);
+                if (time != null) {
+                    weatherAlertsNightPref.setSummaryOn(time);
+                }
             }
         }
 

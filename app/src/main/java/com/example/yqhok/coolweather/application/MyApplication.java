@@ -1,4 +1,4 @@
-package com.example.yqhok.coolweather;
+package com.example.yqhok.coolweather.application;
 
 import android.content.Context;
 
