@@ -2,27 +2,59 @@
 <layout xmlns:android="http://schemas.android.com/apk/res/android">
 
     <LinearLayout
-        android:orientation="vertical"
+        android:orientation="horizontal"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_margin="15dp">
 
-        <TextView
-            android:id="@+id/degree_text"
-            android:layout_width="wrap_content"
+        <LinearLayout
+            android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:layout_gravity="end"
-            android:textColor="#fff"
-            android:textSize="60sp"/>
+            android:layout_weight="1">
 
-        <TextView
-            android:id="@+id/weather_info_text"
-            android:layout_width="wrap_content"
+            <ImageView
+                android:id="@+id/weather_img"
+                android:layout_width="120dp"
+                android:layout_height="120dp"
+                android:layout_marginTop="-10dp"
+                android:layout_marginLeft="40dp"
+                android:scaleType="centerCrop" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:orientation="vertical"
+            android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:layout_gravity="end"
-            android:textColor="#fff"
-            android:textSize="20sp"/>
+            android:layout_weight="1">
+
+            <TextView
+                android:id="@+id/update_time"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="end"
+                android:textColor="#fff"
+                android:textSize="12sp"/>
+
+            <TextView
+                android:id="@+id/degree_text"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="end"
+                android:textColor="#fff"
+                android:textSize="60sp"/>
+
+            <TextView
+                android:id="@+id/weather_info_text"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="end"
+                android:textColor="#fff"
+                android:textSize="20sp"/>
+
+        </LinearLayout>
 
     </LinearLayout>
+
+
 
 </layout>
