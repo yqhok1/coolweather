@@ -212,8 +212,8 @@ public class WeatherActivity extends BaseActivity<ActivityWeatherBinding> implem
                         currentWeather.setWeatherId(weather.basic.weatherId);
                     }
                     currentWeather.setCityName(weather.basic.cityName);
-                    currentWeather.setMin(weather.forecastList.get(0).temperature.min + "℃");
-                    currentWeather.setMax(weather.forecastList.get(0).temperature.max + "℃");
+                    currentWeather.setMin(weather.forecastList.get(0).temperature.min);
+                    currentWeather.setMax(weather.forecastList.get(0).temperature.max);
                     currentWeather.setInfo(weather.now.more.info);
                     currentWeather.save();
                     new Thread(new Runnable() {
@@ -273,8 +273,8 @@ public class WeatherActivity extends BaseActivity<ActivityWeatherBinding> implem
             TextView minText = forecastItemBinding.minText;
             dateText.setText(forecast.date);
             infoText.setText(forecast.more.info);
-            maxText.setText(forecast.temperature.max);
-            minText.setText(forecast.temperature.min);
+            maxText.setText(forecast.temperature.max + "℃");
+            minText.setText(forecast.temperature.min + "℃");
             forecastLayout.addView(forecastItemBinding.getRoot());
         }
         if (weather.aqi != null) {
@@ -474,7 +474,7 @@ public class WeatherActivity extends BaseActivity<ActivityWeatherBinding> implem
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
-        getMenuInflater().inflate(R.menu.toolbar, menu);
+        getMenuInflater().inflate(R.menu.toolbar_weather, menu);
         return true;
     }
 

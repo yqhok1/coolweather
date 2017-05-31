@@ -5,6 +5,7 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.support.v7.widget.Toolbar;
 import android.widget.Toast;
 
 import com.example.yqhok.coolweather.adapter.ChooseAreaAdapter;
@@ -33,6 +34,7 @@ public class ChooseAreaActivity extends BaseActivity<ActivityChooseAreaBinding> 
     public static final int LEVEL_CITY = 1;
     public static final int LEVEL_COUNTY = 2;
 
+    private Toolbar toolbar;
     private RecyclerView recyclerView;
 
     private ChooseAreaAdapter adapter;
@@ -104,6 +106,7 @@ public class ChooseAreaActivity extends BaseActivity<ActivityChooseAreaBinding> 
     }
 
     private void initView() {
+        toolbar = getToolBar();
         recyclerView = bindingView.recyclerView;
         adapter = new ChooseAreaAdapter();
         LinearLayoutManager manager = new LinearLayoutManager(this);
