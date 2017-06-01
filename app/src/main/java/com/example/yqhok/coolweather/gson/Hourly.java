@@ -28,10 +28,25 @@ public class Hourly implements Parcelable{
     @SerializedName("tmp")
     public String tmp;
 
+    @SerializedName("wind")
+    public Wind wind;
+
     public class More1 {
 
         @SerializedName("txt")
         public String info;
+    }
+
+    public class Wind {
+
+        @SerializedName("dir")
+        public String dir;
+
+        @SerializedName("sc")
+        public String sc;
+
+        @SerializedName("spd")
+        public String spd;
     }
 
     @Override
