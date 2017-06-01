@@ -30,8 +30,10 @@ import com.bumptech.glide.Glide;
 import com.example.yqhok.coolweather.base.BaseActivity;
 import com.example.yqhok.coolweather.databinding.ActivityWeatherBinding;
 import com.example.yqhok.coolweather.databinding.ForecastItemBinding;
+import com.example.yqhok.coolweather.databinding.ItemHourInfoItemBinding;
 import com.example.yqhok.coolweather.db.WeatherInfo;
 import com.example.yqhok.coolweather.gson.Forecast;
+import com.example.yqhok.coolweather.gson.Hourly;
 import com.example.yqhok.coolweather.gson.Weather;
 import com.example.yqhok.coolweather.login.RegisterActivity;
 import com.example.yqhok.coolweather.service.AutoUpdateService;
@@ -55,6 +57,7 @@ public class WeatherActivity extends BaseActivity<ActivityWeatherBinding> implem
     private ScrollView weatherLayout;
     private TextView degreeText;
     private TextView weatherInfoText;
+    private LinearLayout hourinfoLayout;
     private LinearLayout forecastLayout;
     private TextView aqiText;
     private TextView pm25Text;
@@ -67,6 +70,7 @@ public class WeatherActivity extends BaseActivity<ActivityWeatherBinding> implem
     private NavigationView navigationView;
     private FloatingActionButton fab;
 
+    private ItemHourInfoItemBinding itemHourInfoItemBinding;
     private ForecastItemBinding forecastItemBinding;
 
     private String mWeatherId;
@@ -115,6 +119,7 @@ public class WeatherActivity extends BaseActivity<ActivityWeatherBinding> implem
         weatherLayout = bindingView.weatherLayout;
         degreeText = bindingView.now.degreeText;
         weatherInfoText = bindingView.now.weatherInfoText;
+        hourinfoLayout =bindingView.itemhourinfo.hourinfoLayout;
         forecastLayout = bindingView.forecast.forecastLayout;
         aqiText = bindingView.aqi.aqiText;
         pm25Text = bindingView.aqi.pm25Text;
@@ -264,6 +269,25 @@ public class WeatherActivity extends BaseActivity<ActivityWeatherBinding> implem
         toolbar.setTitle(cityName);
         degreeText.setText(degree);
         weatherInfoText.setText(weatherInfo);
+        hourinfoLayout.removeAllViews();
+        for (Hourly hourly :weather.hourlyList) {
+            itemHourInfoItemBinding = DataBindingUtil.inflate(LayoutInflater.from(this), R.layout.item_hour_info_item, hourinfoLayout, false);
+            TextView hourdateText = itemHourInfoItemBinding.hourDataText;
+            ImageView hourWeatherImg = itemHourInfoItemBinding.hourWeatherImg;
+            TextView hourinfoText = itemHourInfoItemBinding.hourInfoText;
+            TextView hourHum = itemHourInfoItemBinding.hourHum;
+            TextView hourPop = itemHourInfoItemBinding.hourPop;
+            TextView hourPres = itemHourInfoItemBinding.hourPres;
+            TextView hourTemp = itemHourInfoItemBinding.hourTemp;
+            hourdateText.setText("时间：" + hourly.date);
+            hourinfoText.setText(hourly.more1.info);
+            weatherimginfo(hourly.more1.info, hourWeatherImg);
+            hourHum.setText("相对湿度：" + hourly.hum + "%");
+            hourPop.setText("降水概率：" + hourly.pop + "%");
+            hourPres.setText("气压：" + hourly.pres);
+            hourTemp.setText("温度：" + hourly.tmp + "℃");
+            hourinfoLayout.addView(itemHourInfoItemBinding.getRoot());
+        }
         forecastLayout.removeAllViews();
         for (Forecast forecast : weather.forecastList){
             forecastItemBinding = DataBindingUtil.inflate(LayoutInflater.from(this), R.layout.forecast_item, forecastLayout, false);
@@ -271,8 +295,10 @@ public class WeatherActivity extends BaseActivity<ActivityWeatherBinding> implem
             TextView infoText = forecastItemBinding.infoText;
             TextView maxText = forecastItemBinding.maxText;
             TextView minText = forecastItemBinding.minText;
+            ImageView smallweatherimg = forecastItemBinding.weatherImg;
             dateText.setText(forecast.date);
             infoText.setText(forecast.more.info);
+            weatherimginfo(forecast.more.info, smallweatherimg);
             maxText.setText(forecast.temperature.max + "℃");
             minText.setText(forecast.temperature.min + "℃");
             forecastLayout.addView(forecastItemBinding.getRoot());
@@ -287,165 +313,11 @@ public class WeatherActivity extends BaseActivity<ActivityWeatherBinding> implem
         comfortText.setText(comfort);
         carWashText.setText(carWash);
         sportText.setText(sport);
+        hourinfoLayout.setVisibility(View.VISIBLE);
         weatherLayout.setVisibility(View.VISIBLE);
         Intent intent = new Intent(this, AutoUpdateService.class);
         startService(intent);
-        switch (weatherInfo) {
-            case "晴":
-                Glide.with(this).load(R.drawable.sunny).into(weatherimg);
-                break;
-            case "多云":
-                Glide.with(this).load(R.drawable.cloudy).into(weatherimg);
-                break;
-            case "少云":
-                Glide.with(this).load(R.drawable.few_clouds).into(weatherimg);
-                break;
-            case "晴间多云":
-                Glide.with(this).load(R.drawable.partly_cloudy).into(weatherimg);
-                break;
-            case "阴":
-                Glide.with(this).load(R.drawable.overcast).into(weatherimg);
-                break;
-            case "有风":
-                Glide.with(this).load(R.drawable.windy).into(weatherimg);
-                break;
-            case "平静" :
-                Glide.with(this).load(R.drawable.calm).into(weatherimg);
-                break;
-            case "微风":
-                Glide.with(this).load(R.drawable.light_breeze).into(weatherimg);
-                break;
-            case "和风":
-                Glide.with(this).load(R.drawable.moderate).into(weatherimg);
-                break;
-            case "清风":
-                Glide.with(this).load(R.drawable.fresh_breeze).into(weatherimg);
-                break;
-            case "强风":
-                Glide.with(this).load(R.drawable.strong_breeze).into(weatherimg);
-                break;
-            case "疾风":
-                Glide.with(this).load(R.drawable.high_wind).into(weatherimg);
-                break;
-            case "大风":
-                Glide.with(this).load(R.drawable.gale).into(weatherimg);
-                break;
-            case "烈风":
-                Glide.with(this).load(R.drawable.strong_gale).into(weatherimg);
-                break;
-            case "风暴":
-                Glide.with(this).load(R.drawable.storm).into(weatherimg);
-                break;
-            case "狂爆风":
-                Glide.with(this).load(R.drawable.violent_storm).into(weatherimg);
-                break;
-            case "飓风":
-                Glide.with(this).load(R.drawable.hurricane).into(weatherimg);
-                break;
-            case "龙卷风":
-                Glide.with(this).load(R.drawable.tornado).into(weatherimg);
-                break;
-            case "热带风暴":
-                Glide.with(this).load(R.drawable.tropical_storm).into(weatherimg);
-                break;
-            case "阵雨":
-                Glide.with(this).load(R.drawable.shower_rain).into(weatherimg);
-                break;
-            case "强阵雨":
-                Glide.with(this).load(R.drawable.heavy_shower_rain).into(weatherimg);
-                break;
-            case "雷阵雨":
-                Glide.with(this).load(R.drawable.thundershower).into(weatherimg);
-                break;
-            case "强雷阵雨":
-                Glide.with(this).load(R.drawable.heavy_thunderstorm).into(weatherimg);
-                break;
-            case "雷阵雨伴有冰雹":
-                Glide.with(this).load(R.drawable.hail).into(weatherimg);
-                break;
-            case "小雨":
-                Glide.with(this).load(R.drawable.light_rain).into(weatherimg);
-                break;
-            case "中雨":
-                Glide.with(this).load(R.drawable.moderate_rain).into(weatherimg);
-                break;
-            case "大雨":
-                Glide.with(this).load(R.drawable.heavy_rain).into(weatherimg);
-                break;
-            case "极端降雨":
-                Glide.with(this).load(R.drawable.extreme_rain).into(weatherimg);
-                break;
-            case "细雨":
-                Glide.with(this).load(R.drawable.drizzle_rain).into(weatherimg);
-                break;
-            case "暴雨":
-                Glide.with(this).load(R.drawable.storm1).into(weatherimg);
-                break;
-            case "大暴雨":
-                Glide.with(this).load(R.drawable.heavy_storm).into(weatherimg);
-                break;
-            case "特大暴雨":
-                Glide.with(this).load(R.drawable.severe_storm).into(weatherimg);
-                break;
-            case "冻雨":
-                Glide.with(this).load(R.drawable.freezing_rain).into(weatherimg);
-                break;
-            case "小雪":
-                Glide.with(this).load(R.drawable.light_snow).into(weatherimg);
-                break;
-            case "中雪":
-                Glide.with(this).load(R.drawable.moderate_snow).into(weatherimg);
-                break;
-            case "大雪":
-                Glide.with(this).load(R.drawable.heavy_snow).into(weatherimg);
-                break;
-            case "暴雪":
-                Glide.with(this).load(R.drawable.snowstorm).into(weatherimg);
-                break;
-            case "雨夹雪":
-                Glide.with(this).load(R.drawable.sleet).into(weatherimg);
-                break;
-            case "雨雪天气":
-                Glide.with(this).load(R.drawable.rain_and_snow).into(weatherimg);
-                break;
-            case "阵雨夹雪":
-                Glide.with(this).load(R.drawable.shower_snow).into(weatherimg);
-                break;
-            case "阵雪":
-                Glide.with(this).load(R.drawable.snow_flurry).into(weatherimg);
-                break;
-            case "薄雾":
-                Glide.with(this).load(R.drawable.mist).into(weatherimg);
-                break;
-            case "雾":
-                Glide.with(this).load(R.drawable.foggy).into(weatherimg);
-                break;
-            case "霾":
-                Glide.with(this).load(R.drawable.haze).into(weatherimg);
-                break;
-            case "扬沙":
-                Glide.with(this).load(R.drawable.sand).into(weatherimg);
-                break;
-            case "浮尘":
-                Glide.with(this).load(R.drawable.dust).into(weatherimg);
-                break;
-            case "沙尘暴":
-                Glide.with(this).load(R.drawable.duststorm).into(weatherimg);
-                break;
-            case "强沙尘暴":
-                Glide.with(this).load(R.drawable.sandstorm).into(weatherimg);
-                break;
-            case "热":
-                Glide.with(this).load(R.drawable.hot).into(weatherimg);
-                break;
-            case "冷":
-                Glide.with(this).load(R.drawable.cold).into(weatherimg);
-                break;
-            case "未知":
-                Glide.with(this).load(R.drawable.unknown).into(weatherimg);
-                break;
-            default:break;
-        }
+        nowweatherimginfo(weatherInfo, weatherimg);
     }
 
     private void loadBingPic(){
@@ -539,6 +411,324 @@ public class WeatherActivity extends BaseActivity<ActivityWeatherBinding> implem
                 startActivity(intent);
                 finish();
                 break;
+        }
+    }
+
+    public void nowweatherimginfo(String type, ImageView img) {
+        switch (type) {
+            case "晴":
+                Glide.with(this).load(R.drawable.sunny_white).into(img);
+                break;
+            case "多云":
+                Glide.with(this).load(R.drawable.cloudy_white).into(img);
+                break;
+            case "少云":
+                Glide.with(this).load(R.drawable.few_clouds_white).into(img);
+                break;
+            case "晴间多云":
+                Glide.with(this).load(R.drawable.partly_cloudy_white).into(img);
+                break;
+            case "阴":
+                Glide.with(this).load(R.drawable.overcast_white).into(img);
+                break;
+            case "有风":
+                Glide.with(this).load(R.drawable.windy_white).into(img);
+                break;
+            case "平静" :
+                Glide.with(this).load(R.drawable.calm_white).into(img);
+                break;
+            case "微风":
+                Glide.with(this).load(R.drawable.light_breeze_white).into(img);
+                break;
+            case "和风":
+                Glide.with(this).load(R.drawable.moderate_white).into(img);
+                break;
+            case "清风":
+                Glide.with(this).load(R.drawable.fresh_breeze_white).into(img);
+                break;
+            case "强风":
+                Glide.with(this).load(R.drawable.strong_breeze_white).into(img);
+                break;
+            case "疾风":
+                Glide.with(this).load(R.drawable.high_wind_white).into(img);
+                break;
+            case "大风":
+                Glide.with(this).load(R.drawable.gale_white).into(img);
+                break;
+            case "烈风":
+                Glide.with(this).load(R.drawable.strong_gale_white).into(img);
+                break;
+            case "风暴":
+                Glide.with(this).load(R.drawable.storm_white).into(img);
+                break;
+            case "狂爆风":
+                Glide.with(this).load(R.drawable.violent_storm_white).into(img);
+                break;
+            case "飓风":
+                Glide.with(this).load(R.drawable.hurricane_white).into(img);
+                break;
+            case "龙卷风":
+                Glide.with(this).load(R.drawable.tornado_white).into(img);
+                break;
+            case "热带风暴":
+                Glide.with(this).load(R.drawable.tropical_storm_white).into(img);
+                break;
+            case "阵雨":
+                Glide.with(this).load(R.drawable.shower_rain_white).into(img);
+                break;
+            case "强阵雨":
+                Glide.with(this).load(R.drawable.heavy_shower_rain_white).into(img);
+                break;
+            case "雷阵雨":
+                Glide.with(this).load(R.drawable.thundershower_white).into(img);
+                break;
+            case "强雷阵雨":
+                Glide.with(this).load(R.drawable.heavy_thunderstorm_white).into(img);
+                break;
+            case "雷阵雨伴有冰雹":
+                Glide.with(this).load(R.drawable.hail_white).into(img);
+                break;
+            case "小雨":
+                Glide.with(this).load(R.drawable.light_rain_white).into(img);
+                break;
+            case "中雨":
+                Glide.with(this).load(R.drawable.moderate_rain_white).into(img);
+                break;
+            case "大雨":
+                Glide.with(this).load(R.drawable.heavy_rain_white).into(img);
+                break;
+            case "极端降雨":
+                Glide.with(this).load(R.drawable.extreme_rain_white).into(img);
+                break;
+            case "细雨":
+                Glide.with(this).load(R.drawable.drizzle_rain_white).into(img);
+                break;
+            case "暴雨":
+                Glide.with(this).load(R.drawable.storm1_white).into(img);
+                break;
+            case "大暴雨":
+                Glide.with(this).load(R.drawable.heavy_storm_white).into(img);
+                break;
+            case "特大暴雨":
+                Glide.with(this).load(R.drawable.severe_storm_white).into(img);
+                break;
+            case "冻雨":
+                Glide.with(this).load(R.drawable.freezing_rain_white).into(img);
+                break;
+            case "小雪":
+                Glide.with(this).load(R.drawable.light_snow_white).into(img);
+                break;
+            case "中雪":
+                Glide.with(this).load(R.drawable.moderate_snow_white).into(img);
+                break;
+            case "大雪":
+                Glide.with(this).load(R.drawable.heavy_snow_white).into(img);
+                break;
+            case "暴雪":
+                Glide.with(this).load(R.drawable.snowstorm_white).into(img);
+                break;
+            case "雨夹雪":
+                Glide.with(this).load(R.drawable.sleet_white).into(img);
+                break;
+            case "雨雪天气":
+                Glide.with(this).load(R.drawable.rain_and_snow_white).into(img);
+                break;
+            case "阵雨夹雪":
+                Glide.with(this).load(R.drawable.shower_snow_white).into(img);
+                break;
+            case "阵雪":
+                Glide.with(this).load(R.drawable.snow_flurry_white).into(img);
+                break;
+            case "薄雾":
+                Glide.with(this).load(R.drawable.mist_white).into(img);
+                break;
+            case "雾":
+                Glide.with(this).load(R.drawable.foggy_white).into(img);
+                break;
+            case "霾":
+                Glide.with(this).load(R.drawable.haze_white).into(img);
+                break;
+            case "扬沙":
+                Glide.with(this).load(R.drawable.sand_white).into(img);
+                break;
+            case "浮尘":
+                Glide.with(this).load(R.drawable.dust_white).into(img);
+                break;
+            case "沙尘暴":
+                Glide.with(this).load(R.drawable.duststorm_white).into(img);
+                break;
+            case "强沙尘暴":
+                Glide.with(this).load(R.drawable.sandstorm_white).into(img);
+                break;
+            case "热":
+                Glide.with(this).load(R.drawable.hot_white).into(img);
+                break;
+            case "冷":
+                Glide.with(this).load(R.drawable.cold_white).into(img);
+                break;
+            case "未知":
+                Glide.with(this).load(R.drawable.unknown_white).into(img);
+                break;
+            default:break;
+        }
+    }
+
+    public void weatherimginfo(String type, ImageView img) {
+        switch (type) {
+            case "晴":
+                Glide.with(this).load(R.drawable.sunny_black).into(img);
+                break;
+            case "多云":
+                Glide.with(this).load(R.drawable.cloudy_black).into(img);
+                break;
+            case "少云":
+                Glide.with(this).load(R.drawable.few_clouds_black).into(img);
+                break;
+            case "晴间多云":
+                Glide.with(this).load(R.drawable.partly_cloudy_black).into(img);
+                break;
+            case "阴":
+                Glide.with(this).load(R.drawable.overcast_black).into(img);
+                break;
+            case "有风":
+                Glide.with(this).load(R.drawable.windy_black).into(img);
+                break;
+            case "平静" :
+                Glide.with(this).load(R.drawable.calm_black).into(img);
+                break;
+            case "微风":
+                Glide.with(this).load(R.drawable.light_breeze_black).into(img);
+                break;
+            case "和风":
+                Glide.with(this).load(R.drawable.moderate_black).into(img);
+                break;
+            case "清风":
+                Glide.with(this).load(R.drawable.fresh_breeze_black).into(img);
+                break;
+            case "强风":
+                Glide.with(this).load(R.drawable.strong_breeze_black).into(img);
+                break;
+            case "疾风":
+                Glide.with(this).load(R.drawable.high_wind_black).into(img);
+                break;
+            case "大风":
+                Glide.with(this).load(R.drawable.gale_black).into(img);
+                break;
+            case "烈风":
+                Glide.with(this).load(R.drawable.strong_gale_black).into(img);
+                break;
+            case "风暴":
+                Glide.with(this).load(R.drawable.storm_black).into(img);
+                break;
+            case "狂爆风":
+                Glide.with(this).load(R.drawable.violent_storm_black).into(img);
+                break;
+            case "飓风":
+                Glide.with(this).load(R.drawable.hurricane_black).into(img);
+                break;
+            case "龙卷风":
+                Glide.with(this).load(R.drawable.tornado_black).into(img);
+                break;
+            case "热带风暴":
+                Glide.with(this).load(R.drawable.tropical_storm_black).into(img);
+                break;
+            case "阵雨":
+                Glide.with(this).load(R.drawable.shower_rain_black).into(img);
+                break;
+            case "强阵雨":
+                Glide.with(this).load(R.drawable.heavy_shower_rain_black).into(img);
+                break;
+            case "雷阵雨":
+                Glide.with(this).load(R.drawable.thundershower_black).into(img);
+                break;
+            case "强雷阵雨":
+                Glide.with(this).load(R.drawable.heavy_thunderstorm_black).into(img);
+                break;
+            case "雷阵雨伴有冰雹":
+                Glide.with(this).load(R.drawable.hail_black).into(img);
+                break;
+            case "小雨":
+                Glide.with(this).load(R.drawable.light_rain_black).into(img);
+                break;
+            case "中雨":
+                Glide.with(this).load(R.drawable.moderate_rain_black).into(img);
+                break;
+            case "大雨":
+                Glide.with(this).load(R.drawable.heavy_rain_black).into(img);
+                break;
+            case "极端降雨":
+                Glide.with(this).load(R.drawable.extreme_rain_black).into(img);
+                break;
+            case "细雨":
+                Glide.with(this).load(R.drawable.drizzle_rain_black).into(img);
+                break;
+            case "暴雨":
+                Glide.with(this).load(R.drawable.storm1_black).into(img);
+                break;
+            case "大暴雨":
+                Glide.with(this).load(R.drawable.heavy_storm_black).into(img);
+                break;
+            case "特大暴雨":
+                Glide.with(this).load(R.drawable.severe_storm_black).into(img);
+                break;
+            case "冻雨":
+                Glide.with(this).load(R.drawable.freezing_rain_black).into(img);
+                break;
+            case "小雪":
+                Glide.with(this).load(R.drawable.light_snow_black).into(img);
+                break;
+            case "中雪":
+                Glide.with(this).load(R.drawable.moderate_snow_black).into(img);
+                break;
+            case "大雪":
+                Glide.with(this).load(R.drawable.heavy_snow_black).into(img);
+                break;
+            case "暴雪":
+                Glide.with(this).load(R.drawable.snowstorm_black).into(img);
+                break;
+            case "雨夹雪":
+                Glide.with(this).load(R.drawable.sleet_black).into(img);
+                break;
+            case "雨雪天气":
+                Glide.with(this).load(R.drawable.rain_and_snow_black).into(img);
+                break;
+            case "阵雨夹雪":
+                Glide.with(this).load(R.drawable.shower_snow_black).into(img);
+                break;
+            case "阵雪":
+                Glide.with(this).load(R.drawable.snow_flurry_black).into(img);
+                break;
+            case "薄雾":
+                Glide.with(this).load(R.drawable.mist_black).into(img);
+                break;
+            case "雾":
+                Glide.with(this).load(R.drawable.foggy_black).into(img);
+                break;
+            case "霾":
+                Glide.with(this).load(R.drawable.haze_black).into(img);
+                break;
+            case "扬沙":
+                Glide.with(this).load(R.drawable.sand_black).into(img);
+                break;
+            case "浮尘":
+                Glide.with(this).load(R.drawable.dust_black).into(img);
+                break;
+            case "沙尘暴":
+                Glide.with(this).load(R.drawable.duststorm_black).into(img);
+                break;
+            case "强沙尘暴":
+                Glide.with(this).load(R.drawable.sandstorm_black).into(img);
+                break;
+            case "热":
+                Glide.with(this).load(R.drawable.hot_black).into(img);
+                break;
+            case "冷":
+                Glide.with(this).load(R.drawable.cold_black).into(img);
+                break;
+            case "未知":
+                Glide.with(this).load(R.drawable.unknown_black).into(img);
+                break;
+            default:break;
         }
     }
 
