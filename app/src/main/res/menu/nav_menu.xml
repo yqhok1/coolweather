@@ -3,10 +3,8 @@
 
     <group android:checkableBehavior="single">
 
-        <item
-            android:id="@+id/choose_city">
-            <menu>
-            </menu>
+        <item android:id="@+id/choose_city">
+            <menu></menu>
         </item>
     </group>
 

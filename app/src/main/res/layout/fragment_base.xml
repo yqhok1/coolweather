@@ -12,7 +12,7 @@
             android:id="@+id/rl_content_part"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:background="@android:color/transparent"/>
+            android:background="@android:color/transparent" />
 
         <RelativeLayout
             android:id="@+id/container"

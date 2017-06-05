@@ -1,10 +1,14 @@
 package com.example.yqhok.coolweather;
 
+import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.content.SharedPreferences;
 import android.databinding.DataBindingUtil;
 import android.graphics.Color;
+import android.net.ConnectivityManager;
+import android.net.NetworkInfo;
 import android.os.Build;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
@@ -27,6 +31,7 @@ import android.widget.Toast;
 
 import com.avos.avoscloud.AVUser;
 import com.bumptech.glide.Glide;
+import com.example.yqhok.coolweather.application.MyApplication;
 import com.example.yqhok.coolweather.base.BaseActivity;
 import com.example.yqhok.coolweather.databinding.ActivityWeatherBinding;
 import com.example.yqhok.coolweather.databinding.ForecastItemBinding;
@@ -50,6 +55,9 @@ import okhttp3.Callback;
 import okhttp3.Response;
 
 public class WeatherActivity extends BaseActivity<ActivityWeatherBinding> implements SwipeRefreshLayout.OnRefreshListener, NavigationView.OnNavigationItemSelectedListener, View.OnClickListener {
+
+    private IntentFilter intentFilter;
+    private NetworkChangeReceiver networkChangeReceiver;
 
     private Intent intent;
 
@@ -97,6 +105,8 @@ public class WeatherActivity extends BaseActivity<ActivityWeatherBinding> implem
     private ImageView weatherimg;
     private TextView updateTime;
 
+    private static boolean isNetworkAvailable;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -109,6 +119,7 @@ public class WeatherActivity extends BaseActivity<ActivityWeatherBinding> implem
         initData();
         initView();
         showContentView();
+        initNetReceiver();
     }
 
     @Override
@@ -116,6 +127,12 @@ public class WeatherActivity extends BaseActivity<ActivityWeatherBinding> implem
         super.onResume();
         initMenu();
         onRefresh();
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        unregisterReceiver(networkChangeReceiver);
     }
 
     public static void start(Context context) {
@@ -129,7 +146,7 @@ public class WeatherActivity extends BaseActivity<ActivityWeatherBinding> implem
         if (flag != null && flag.equals("loadData")) {
             Utility.LoadDataTask task = new Utility.LoadDataTask();
             task.execute();
-            while (!task.isFinished);
+            while (!task.isFinished) ;
         }
     }
 
@@ -138,15 +155,15 @@ public class WeatherActivity extends BaseActivity<ActivityWeatherBinding> implem
         weatherLayout = bindingView.weatherLayout;
         degreeText = bindingView.now.degreeText;
         weatherInfoText = bindingView.now.weatherInfoText;
-        nowFl = (TextView)findViewById(R.id.now_fl);
-        nowHum =(TextView)findViewById(R.id.now_hum);
+        nowFl = (TextView) findViewById(R.id.now_fl);
+        nowHum = (TextView) findViewById(R.id.now_hum);
         nowPcpn = (TextView) findViewById(R.id.now_pcpn);
-        nowPres = (TextView)findViewById(R.id.now_pres);
-        nowVis = (TextView)findViewById(R.id.now_vis);
-        nowDir = (TextView)findViewById(R.id.now_dir);
-        nowSc = (TextView)findViewById(R.id.now_sc);
-        nowSpd =(TextView)findViewById(R.id.now_spd);
-        hourinfoLayout =bindingView.itemhourinfo.hourinfoLayout;
+        nowPres = (TextView) findViewById(R.id.now_pres);
+        nowVis = (TextView) findViewById(R.id.now_vis);
+        nowDir = (TextView) findViewById(R.id.now_dir);
+        nowSc = (TextView) findViewById(R.id.now_sc);
+        nowSpd = (TextView) findViewById(R.id.now_spd);
+        hourinfoLayout = bindingView.itemhourinfo.hourinfoLayout;
         forecastLayout = bindingView.forecast.forecastLayout;
         aqiText = bindingView.aqi.aqiText;
         pm25Text = bindingView.aqi.pm25Text;
@@ -223,9 +240,9 @@ public class WeatherActivity extends BaseActivity<ActivityWeatherBinding> implem
         if (weather != null) {
             navigationView.getMenu().clear();
             navigationView.getMenu().add(R.id.choose_city, 0, 0, weather.getCityName()).setIcon(R.drawable.city);
-            for (int i = 0, j = 1; i < weatherList.size(); i ++, j ++) {
+            for (int i = 0, j = 1; i < weatherList.size(); i++, j++) {
                 if (weatherList.get(i).getIsCurrent()) {
-                    j --;
+                    j--;
                 } else {
                     navigationView.getMenu().add(R.id.choose_city, j, j, weatherList.get(i).getCityName()).setIcon(R.drawable.city);
                 }
@@ -276,7 +293,7 @@ public class WeatherActivity extends BaseActivity<ActivityWeatherBinding> implem
                     runOnUiThread(new Runnable() {
                         @Override
                         public void run() {
-                            Toast.makeText(WeatherActivity.this,"获取天气信息失败",Toast.LENGTH_SHORT).show();
+                            Toast.makeText(WeatherActivity.this, "获取天气信息失败", Toast.LENGTH_SHORT).show();
                             swipeRefresh.setRefreshing(false);
                         }
                     });
@@ -289,7 +306,7 @@ public class WeatherActivity extends BaseActivity<ActivityWeatherBinding> implem
                 runOnUiThread(new Runnable() {
                     @Override
                     public void run() {
-                        Toast.makeText(WeatherActivity.this,"获取天气信息失败",Toast.LENGTH_SHORT).show();
+                        Toast.makeText(WeatherActivity.this, "获取天气信息失败", Toast.LENGTH_SHORT).show();
                         swipeRefresh.setRefreshing(false);
                     }
                 });
@@ -302,7 +319,7 @@ public class WeatherActivity extends BaseActivity<ActivityWeatherBinding> implem
         String cityName = weather.basic.cityName;
         String degree = weather.now.temperature + "℃";
         String weatherInfo = weather.now.more.info;
-        String updatetime = "上次更新时间："+ weather.basic.update.updateTime.split(" ")[1];
+        String updatetime = "上次更新时间：" + weather.basic.update.updateTime.split(" ")[1];
         updateTime.setText(updatetime);
         toolbar.setTitle(cityName);
         degreeText.setText(degree);
@@ -316,7 +333,7 @@ public class WeatherActivity extends BaseActivity<ActivityWeatherBinding> implem
         nowSc.setText("风力：" + weather.now.wind1.sc);
         nowSpd.setText("风速：" + weather.now.wind1.spd + "kmph");
         hourinfoLayout.removeAllViews();
-        for (Hourly hourly :weather.hourlyList) {
+        for (Hourly hourly : weather.hourlyList) {
             itemHourInfoItemBinding = DataBindingUtil.inflate(LayoutInflater.from(this), R.layout.item_hour_info_item, hourinfoLayout, false);
             TextView hourdateText = itemHourInfoItemBinding.hourDataText;
             ImageView hourWeatherImg = itemHourInfoItemBinding.hourWeatherImg;
@@ -341,7 +358,7 @@ public class WeatherActivity extends BaseActivity<ActivityWeatherBinding> implem
             hourinfoLayout.addView(itemHourInfoItemBinding.getRoot());
         }
         forecastLayout.removeAllViews();
-        for (Forecast forecast : weather.forecastList){
+        for (Forecast forecast : weather.forecastList) {
             forecastItemBinding = DataBindingUtil.inflate(LayoutInflater.from(this), R.layout.forecast_item, forecastLayout, false);
             TextView dateText = forecastItemBinding.dataText;
             TextView infoText = forecastItemBinding.infoText;
@@ -380,7 +397,7 @@ public class WeatherActivity extends BaseActivity<ActivityWeatherBinding> implem
         nowweatherimginfo(weatherInfo, weatherimg);
     }
 
-    private void loadBingPic(){
+    private void loadBingPic() {
         String requestBingPic = "http://guolin.tech/api/bing_pic";
         HttpUtil.sendOkHttpRequest(requestBingPic, new Callback() {
             @Override
@@ -403,6 +420,14 @@ public class WeatherActivity extends BaseActivity<ActivityWeatherBinding> implem
             }
         });
     }
+
+    private void initNetReceiver() {
+        intentFilter = new IntentFilter();
+        intentFilter.addAction("android.net.conn.CONNECTIVITY_CHANGE");
+        networkChangeReceiver = new NetworkChangeReceiver();
+        registerReceiver(networkChangeReceiver, intentFilter);
+    }
+
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
@@ -448,6 +473,7 @@ public class WeatherActivity extends BaseActivity<ActivityWeatherBinding> implem
         switch (item.getItemId()) {
             default:
                 drawerLayout.closeDrawers();
+                swipeRefresh.setRefreshing(true);
                 if (DataSupport.isExist(WeatherInfo.class)) {
                     WeatherInfo weather = DataSupport.where("cityName = ?", item.getTitle().toString()).findFirst(WeatherInfo.class);
                     mWeatherId = weather.getWeatherId();
@@ -461,6 +487,13 @@ public class WeatherActivity extends BaseActivity<ActivityWeatherBinding> implem
         return true;
     }
 
+//    @Override
+//    public boolean onLongClick(View v) {
+//        NavigationMenuItemView itemView = (NavigationMenuItemView) navigationView.findViewById(v.getId());
+//        DataSupport.deleteAll(WeatherInfo.class, "cityName = ?", itemView.getItemData().getTitle().toString());
+//        return true;
+//    }
+
     @Override
     public void onClick(View v) {
         switch (v.getId()) {
@@ -473,6 +506,7 @@ public class WeatherActivity extends BaseActivity<ActivityWeatherBinding> implem
                 break;
         }
     }
+
 
     public void nowweatherimginfo(String type, ImageView img) {
         switch (type) {
@@ -494,7 +528,7 @@ public class WeatherActivity extends BaseActivity<ActivityWeatherBinding> implem
             case "有风":
                 Glide.with(this).load(R.drawable.windy_white).into(img);
                 break;
-            case "平静" :
+            case "平静":
                 Glide.with(this).load(R.drawable.calm_white).into(img);
                 break;
             case "微风":
@@ -629,7 +663,8 @@ public class WeatherActivity extends BaseActivity<ActivityWeatherBinding> implem
             case "未知":
                 Glide.with(this).load(R.drawable.unknown_white).into(img);
                 break;
-            default:break;
+            default:
+                break;
         }
     }
 
@@ -653,7 +688,7 @@ public class WeatherActivity extends BaseActivity<ActivityWeatherBinding> implem
             case "有风":
                 Glide.with(this).load(R.drawable.windy_black).into(img);
                 break;
-            case "平静" :
+            case "平静":
                 Glide.with(this).load(R.drawable.calm_black).into(img);
                 break;
             case "微风":
@@ -788,8 +823,26 @@ public class WeatherActivity extends BaseActivity<ActivityWeatherBinding> implem
             case "未知":
                 Glide.with(this).load(R.drawable.unknown_black).into(img);
                 break;
-            default:break;
+            default:
+                break;
         }
+    }
+
+    public class NetworkChangeReceiver extends BroadcastReceiver {
+
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            ConnectivityManager connectivityManager = (ConnectivityManager) MyApplication.getContext().getSystemService(Context.CONNECTIVITY_SERVICE);
+            NetworkInfo networkInfo = connectivityManager.getActiveNetworkInfo();
+            if (networkInfo == null) {
+                Toast.makeText(context, "当前无网络连接", Toast.LENGTH_LONG).show();
+                isNetworkAvailable = false;
+            } else {
+                isNetworkAvailable = true;
+                loadBingPic();
+            }
+        }
+
     }
 
 }

@@ -9,7 +9,7 @@ import com.google.gson.annotations.SerializedName;
  * Created by Kevin on 2017/5/31.
  */
 
-public class Hourly implements Parcelable{
+public class Hourly implements Parcelable {
     @SerializedName("cond")
     public More1 more1;
 

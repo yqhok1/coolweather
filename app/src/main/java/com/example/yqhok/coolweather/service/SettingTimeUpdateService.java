@@ -54,14 +54,14 @@ public class SettingTimeUpdateService extends Service {
         final PendingIntent pi = PendingIntent.getActivity(this, 0, i, 0);
         final Calendar time = Calendar.getInstance();
         String hour = setTime.substring(0, 2);
-        String minute = setTime.substring(setTime.length()-2);
+        String minute = setTime.substring(setTime.length() - 2);
         int h = Integer.parseInt(hour);
         int m = Integer.parseInt(minute);
         time.set(Calendar.HOUR_OF_DAY, h);
         time.set(Calendar.MINUTE, m);
         time.set(Calendar.SECOND, 00);
         Date date = time.getTime();
-        if(date.before(new Date())) {
+        if (date.before(new Date())) {
             date = this.addDate(date, 1);
         }
         final long Period = 24 * 60 * 60 * 1000;

@@ -1,21 +1,28 @@
 package com.example.yqhok.coolweather;
 
+import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.content.SharedPreferences;
 import android.graphics.Color;
+import android.net.ConnectivityManager;
+import android.net.NetworkInfo;
 import android.os.Build;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
+import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.widget.Toolbar;
 import android.view.View;
 import android.widget.Button;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.avos.avoscloud.AVUser;
 import com.bumptech.glide.Glide;
+import com.example.yqhok.coolweather.application.MyApplication;
 import com.example.yqhok.coolweather.base.BaseActivity;
 import com.example.yqhok.coolweather.databinding.ActivityHomeBinding;
 import com.example.yqhok.coolweather.login.RegisterActivity;
@@ -30,10 +37,16 @@ import okhttp3.Response;
 
 public class HomeActivity extends BaseActivity<ActivityHomeBinding> implements View.OnClickListener {
 
+    private IntentFilter intentFilter;
+    private NetworkChangeReceiver networkChangeReceiver;
+
     private Toolbar toolbar;
     private TextView info;
+    private TextView welcomeInfo;
     private Button login;
     private Button chooseArea;
+
+    private static boolean isNetworkAvailable;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -48,12 +61,19 @@ public class HomeActivity extends BaseActivity<ActivityHomeBinding> implements V
         loadBingPic();
         showContentView();
         initData();
+        initNetReceiver();
     }
 
     @Override
     protected void onResume() {
         super.onResume();
         initData();
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        unregisterReceiver(networkChangeReceiver);
     }
 
     public static void start(Context context) {
@@ -64,12 +84,13 @@ public class HomeActivity extends BaseActivity<ActivityHomeBinding> implements V
     private void initView() {
         toolbar = getToolBar();
         info = bindingView.info;
+        welcomeInfo = bindingView.welcomeInfo;
         login = bindingView.actionLogin;
         chooseArea = bindingView.actionChooseArea;
-        toolbar.setBackgroundResource(R.color.Black);
+        toolbar.setBackgroundResource(android.R.color.transparent);
+        toolbar.setTitle("");
         setSupportActionBar(toolbar);
         getSupportActionBar().setDisplayHomeAsUpEnabled(false);
-        toolbar.setTitle("CoolWeather");
         login.setOnClickListener(this);
         chooseArea.setOnClickListener(this);
     }
@@ -84,7 +105,7 @@ public class HomeActivity extends BaseActivity<ActivityHomeBinding> implements V
             if (user.get("currentCityId") != null) {
                 Utility.LoadDataTask task = new Utility.LoadDataTask();
                 task.execute();
-                while (!task.isFinished);
+                while (!task.isFinished) ;
                 WeatherActivity.start(HomeActivity.this);
                 HomeActivity.this.finish();
             } else {
@@ -94,7 +115,7 @@ public class HomeActivity extends BaseActivity<ActivityHomeBinding> implements V
         }
     }
 
-    private void loadBingPic(){
+    private void loadBingPic() {
         String requestBingPic = "http://guolin.tech/api/bing_pic";
         HttpUtil.sendOkHttpRequest(requestBingPic, new Callback() {
             @Override
@@ -119,33 +140,70 @@ public class HomeActivity extends BaseActivity<ActivityHomeBinding> implements V
         getRootPic().setVisibility(View.VISIBLE);
     }
 
+    private void initNetReceiver() {
+        intentFilter = new IntentFilter();
+        intentFilter.addAction("android.net.conn.CONNECTIVITY_CHANGE");
+        networkChangeReceiver = new NetworkChangeReceiver();
+        registerReceiver(networkChangeReceiver, intentFilter);
+    }
+
     @Override
     public void onClick(View v) {
         switch (v.getId()) {
             case R.id.action_login:
-                if (login.getText().toString().equals("退出登录")) {
-                    AlertDialog.Builder dialog = new AlertDialog.Builder(HomeActivity.this);
-                    dialog.setTitle("确定要退出？");
-                    dialog.setCancelable(true);
-                    dialog.setPositiveButton("确定", new DialogInterface.OnClickListener() {
-                        @Override
-                        public void onClick(DialogInterface dialog, int which) {
-                            AVUser.logOut();
-                            info.setVisibility(View.VISIBLE);
-                            login.setText("注册或登录");
-                        }
-                    });
-                    dialog.setNegativeButton("取消", null);
-                    dialog.show();
+                if (isNetworkAvailable) {
+                    if (login.getText().toString().equals("退出登录")) {
+                        AlertDialog.Builder dialog = new AlertDialog.Builder(HomeActivity.this);
+                        dialog.setTitle("确定要退出？");
+                        dialog.setCancelable(true);
+                        dialog.setPositiveButton("确定", new DialogInterface.OnClickListener() {
+                            @Override
+                            public void onClick(DialogInterface dialog, int which) {
+                                AVUser.logOut();
+                                info.setVisibility(View.VISIBLE);
+                                login.setText("注册或登录");
+                            }
+                        });
+                        dialog.setNegativeButton("取消", null);
+                        dialog.show();
+                    } else {
+                        RegisterActivity.start(this);
+                    }
                 } else {
-                    RegisterActivity.start(this);
+                    Toast.makeText(this, "当前无网络连接", Toast.LENGTH_SHORT).show();
                 }
                 break;
             case R.id.action_choose_area:
-                Intent intent = new Intent(this, ChooseAreaActivity.class);
-                intent.putExtra("flag", "HomeActivity");
-                startActivity(intent);
-                break;
+                if (isNetworkAvailable) {
+                    Intent intent = new Intent(this, ChooseAreaActivity.class);
+                    intent.putExtra("flag", "HomeActivity");
+                    startActivity(intent);
+                    break;
+                } else {
+                    Toast.makeText(this, "当前无网络连接", Toast.LENGTH_SHORT).show();
+                }
         }
     }
+
+    public class NetworkChangeReceiver extends BroadcastReceiver {
+
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            ConnectivityManager connectivityManager = (ConnectivityManager) MyApplication.getContext().getSystemService(Context.CONNECTIVITY_SERVICE);
+            NetworkInfo networkInfo = connectivityManager.getActiveNetworkInfo();
+            if (networkInfo == null) {
+                Toast.makeText(context, "当前无网络连接", Toast.LENGTH_LONG).show();
+                isNetworkAvailable = false;
+                welcomeInfo.setTextColor(ContextCompat.getColor(MyApplication.getContext(), R.color.Blue));
+                info.setTextColor(ContextCompat.getColor(MyApplication.getContext(), R.color.Blue));
+            } else {
+                isNetworkAvailable = true;
+                loadBingPic();
+                welcomeInfo.setTextColor(ContextCompat.getColor(MyApplication.getContext(), R.color.White));
+                info.setTextColor(ContextCompat.getColor(MyApplication.getContext(), R.color.White));
+            }
+        }
+
+    }
+
 }

@@ -1,18 +1,30 @@
 <?xml version="1.0" encoding="utf-8"?>
 <layout xmlns:android="http://schemas.android.com/apk/res/android">
 
-    <LinearLayout
+    <RelativeLayout
         android:orientation="vertical"
         android:layout_width="match_parent"
         android:layout_height="match_parent">
+
+        <TextView
+            android:id="@+id/welcome_info"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_horizontal"
+            android:layout_alignParentTop="true"
+            android:layout_marginTop="20dp"
+            android:text="欢迎使用CoolWeather"
+            android:gravity="center"
+            android:textSize="30sp"
+            android:textColor="@color/White" />
 
         <TextView
             android:id="@+id/info"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_gravity="center_horizontal"
-            android:layout_marginTop="100dp"
-            android:layout_marginBottom="100dp"
+            android:layout_alignTop="@id/welcome_info"
+            android:layout_marginTop="50dp"
             android:text="登录以同步您的信息"
             android:gravity="center"
             android:textSize="24sp"
@@ -24,14 +36,14 @@
             android:layout_height="wrap_content"
             android:layout_gravity="center_vertical"
             android:background="@color/Blue"
+            android:layout_alignBottom="@+id/action_choose_area"
             android:layout_marginLeft="20dp"
             android:layout_marginRight="20dp"
-            android:layout_marginTop="30dp"
-            android:layout_marginBottom="30dp"
+            android:layout_marginBottom="80dp"
             android:gravity="center"
             android:text="注册或登录"
             android:textSize="18sp"
-            android:textColor="@color/White"/>
+            android:textColor="@color/White" />
 
         <Button
             android:id="@+id/action_choose_area"
@@ -39,15 +51,15 @@
             android:layout_height="wrap_content"
             android:layout_gravity="center_vertical"
             android:background="@color/Blue"
+            android:layout_alignParentBottom="true"
             android:layout_marginLeft="20dp"
             android:layout_marginRight="20dp"
-            android:layout_marginTop="30dp"
-            android:layout_marginBottom="30dp"
+            android:layout_marginBottom="50dp"
             android:gravity="center"
             android:text="选择城市"
             android:textSize="18sp"
-            android:textColor="@color/White"/>
+            android:textColor="@color/White" />
 
-    </LinearLayout>
+    </RelativeLayout>
 
 </layout>

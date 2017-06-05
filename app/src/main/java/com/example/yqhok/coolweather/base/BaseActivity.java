@@ -8,6 +8,7 @@ import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.view.LayoutInflater;
+import android.view.Menu;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.FrameLayout;
@@ -82,6 +83,10 @@ public class BaseActivity<SV extends ViewDataBinding> extends AppCompatActivity 
         if (bindingView.getRoot().getVisibility() != View.VISIBLE) {
             bindingView.getRoot().setVisibility(View.VISIBLE);
         }
+    }
+
+    protected Menu getMenu() {
+        return getToolBar().getMenu();
     }
 
 }

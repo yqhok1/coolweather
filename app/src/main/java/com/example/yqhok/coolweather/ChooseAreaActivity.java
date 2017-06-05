@@ -1,14 +1,20 @@
 package com.example.yqhok.coolweather;
 
+import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
+import android.net.ConnectivityManager;
+import android.net.NetworkInfo;
 import android.os.Bundle;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.support.v7.widget.SearchView;
 import android.support.v7.widget.Toolbar;
 import android.widget.Toast;
 
 import com.example.yqhok.coolweather.adapter.ChooseAreaAdapter;
+import com.example.yqhok.coolweather.application.MyApplication;
 import com.example.yqhok.coolweather.base.BaseActivity;
 import com.example.yqhok.coolweather.base.adapter.BaseRecyclerViewAdapter;
 import com.example.yqhok.coolweather.databinding.ActivityChooseAreaBinding;
@@ -28,7 +34,10 @@ import okhttp3.Call;
 import okhttp3.Callback;
 import okhttp3.Response;
 
-public class ChooseAreaActivity extends BaseActivity<ActivityChooseAreaBinding> implements BaseRecyclerViewAdapter.OnItemClickListener<String> {
+public class ChooseAreaActivity extends BaseActivity<ActivityChooseAreaBinding> implements BaseRecyclerViewAdapter.OnItemClickListener<String>, SearchView.OnQueryTextListener {
+
+    private IntentFilter intentFilter;
+    private NetworkChangeReceiver networkChangeReceiver;
 
     public static final int LEVEL_PROVINCE = 0;
     public static final int LEVEL_CITY = 1;
@@ -36,6 +45,7 @@ public class ChooseAreaActivity extends BaseActivity<ActivityChooseAreaBinding> 
 
     private Toolbar toolbar;
     private RecyclerView recyclerView;
+    private SearchView searchView;
 
     private ChooseAreaAdapter adapter;
 
@@ -71,6 +81,8 @@ public class ChooseAreaActivity extends BaseActivity<ActivityChooseAreaBinding> 
      */
     private int currentLevel;
 
+    private static boolean isNetworkAvailable;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -78,12 +90,22 @@ public class ChooseAreaActivity extends BaseActivity<ActivityChooseAreaBinding> 
         initView();
         queryProvinces();
         showContentView();
+        initNetReceiver();
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        unregisterReceiver(networkChangeReceiver);
     }
 
     @Override
     public void onBackPressed() {
         Intent intent = getIntent();
         String flag = intent.getStringExtra("flag");
+//        if (searchView.hasFocus()) {
+//            searchView.clearFocus();
+//        }
         if (flag != null) {
             if (currentLevel == LEVEL_PROVINCE && flag.equals("WeatherActivity")) {
                 WeatherActivity.start(this);
@@ -92,8 +114,7 @@ public class ChooseAreaActivity extends BaseActivity<ActivityChooseAreaBinding> 
                 HomeActivity.start(this);
                 ChooseAreaActivity.this.finish();
             }
-        }
-        if (currentLevel == LEVEL_COUNTY) {
+        } else if (currentLevel == LEVEL_COUNTY) {
             queryCities();
         } else if (currentLevel == LEVEL_CITY) {
             queryProvinces();
@@ -230,21 +251,77 @@ public class ChooseAreaActivity extends BaseActivity<ActivityChooseAreaBinding> 
         });
     }
 
+    private void initNetReceiver() {
+        intentFilter = new IntentFilter();
+        intentFilter.addAction("android.net.conn.CONNECTIVITY_CHANGE");
+        networkChangeReceiver = new NetworkChangeReceiver();
+        registerReceiver(networkChangeReceiver, intentFilter);
+    }
+
+//    @Override
+//    public boolean onCreateOptionsMenu(Menu menu) {
+//        getMenuInflater().inflate(R.menu.toolbar_choose_area, getMenu());
+//        searchView = (SearchView) MenuItemCompat.getActionView(menu.findItem(R.id.action_search));
+//        SearchManager searchManager = (SearchManager) getSystemService(SEARCH_SERVICE);
+//        searchView.setQueryHint("输入要查找的地区");
+//        searchView.setSearchableInfo(searchManager.getSearchableInfo(getComponentName()));
+//        searchView.setOnClickListener(this);
+//        return true;
+//    }
+
     @Override
     public void onClick(String s, int position) {
-        if (currentLevel == LEVEL_PROVINCE) {
-            selectedProvince = provinceList.get(position);
-            queryCities();
-        } else if (currentLevel == LEVEL_CITY) {
-            selectedCity = cityList.get(position);
-            queryCounties();
-        } else if (currentLevel == LEVEL_COUNTY) {
-            String weatherId = countyList.get(position).getWeatherId();
-            Intent intent = new Intent(ChooseAreaActivity.this, WeatherActivity.class);
-            intent.putExtra("weather_id", weatherId);
-            startActivity(intent);
-            finish();
+        if (isNetworkAvailable) {
+            if (currentLevel == LEVEL_PROVINCE) {
+                selectedProvince = provinceList.get(position);
+                queryCities();
+            } else if (currentLevel == LEVEL_CITY) {
+                selectedCity = cityList.get(position);
+                queryCounties();
+            } else if (currentLevel == LEVEL_COUNTY) {
+                String weatherId = countyList.get(position).getWeatherId();
+                Intent intent = new Intent(ChooseAreaActivity.this, WeatherActivity.class);
+                intent.putExtra("weather_id", weatherId);
+                startActivity(intent);
+                finish();
+            }
+        } else {
+            Toast.makeText(this, "当前无网络连接", Toast.LENGTH_SHORT).show();
         }
+    }
+
+    @Override
+    public boolean onQueryTextSubmit(String query) {
+        return false;
+    }
+
+    @Override
+    public boolean onQueryTextChange(String newText) {
+        return true;
+    }
+
+//    @Override
+//    public void onClick(View v) {
+//        switch (v.getId()) {
+//            case R.id.action_search:
+//                break;
+//        }
+//    }
+
+    public class NetworkChangeReceiver extends BroadcastReceiver {
+
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            ConnectivityManager connectivityManager = (ConnectivityManager) MyApplication.getContext().getSystemService(Context.CONNECTIVITY_SERVICE);
+            NetworkInfo networkInfo = connectivityManager.getActiveNetworkInfo();
+            if (networkInfo == null) {
+                Toast.makeText(context, "当前无网络连接", Toast.LENGTH_LONG).show();
+                isNetworkAvailable = false;
+            } else {
+                isNetworkAvailable = true;
+            }
+        }
+
     }
 
 }
