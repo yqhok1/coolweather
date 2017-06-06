@@ -163,6 +163,10 @@ public class LoginActivity extends BaseActivity<ActivityLoginBinding> implements
     public void onClick(View v) {
         switch (v.getId()) {
             case R.id.confirm:
+                if (strPassword == null || strPassword.length() < 5 || strPassword.length() > 11) {
+                    Toast.makeText(this, "密码不合法", Toast.LENGTH_SHORT).show();
+                    return;
+                }
                 if (isNetworkAvailable) {
                     if (isSigned) {
                         AVUser.logInInBackground(strUserName, strPassword, new LogInCallback<AVUser>() {
@@ -170,10 +174,9 @@ public class LoginActivity extends BaseActivity<ActivityLoginBinding> implements
                             public void done(AVUser avUser, AVException e) {
                                 if (e == null) {
                                     if (avUser.get("currentCityId") != null) {
-                                        Utility.LoadDataTask task = new Utility.LoadDataTask();
-                                        task.execute();
-                                        while (!task.isFinished) ;
-                                        WeatherActivity.start(LoginActivity.this);
+                                        Intent intent = new Intent(LoginActivity.this, WeatherActivity.class);
+                                        intent.putExtra("flag", "loadData");
+                                        startActivity(intent);
                                         LoginActivity.this.finish();
                                     } else {
                                         Intent intent = new Intent(LoginActivity.this, ChooseAreaActivity.class);
@@ -198,7 +201,6 @@ public class LoginActivity extends BaseActivity<ActivityLoginBinding> implements
                                     if (preferences.getString("weather", null) != null) {
                                         Utility.updateUserData();
                                         Intent intent = new Intent(LoginActivity.this, WeatherActivity.class);
-                                        intent.putExtra("flag", "loadData");
                                         startActivity(intent);
                                         LoginActivity.this.finish();
                                     } else {

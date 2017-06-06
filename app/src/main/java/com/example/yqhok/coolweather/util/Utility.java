@@ -172,6 +172,7 @@ public class Utility {
                             editor.apply();
                             isFinished = true;
                         } else {
+                            weatherInfo.setIsCurrent(false);
                             weatherInfo.save();
                         }
                     }

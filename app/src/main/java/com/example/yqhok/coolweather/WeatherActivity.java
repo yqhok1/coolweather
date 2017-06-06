@@ -126,8 +126,7 @@ public class WeatherActivity extends BaseActivity<ActivityWeatherBinding> implem
     @Override
     protected void onResume() {
         super.onResume();
-        initMenu();
-        onRefresh();
+        initWeather();
     }
 
     @Override
@@ -152,6 +151,7 @@ public class WeatherActivity extends BaseActivity<ActivityWeatherBinding> implem
     }
 
     private void initView() {
+        intent = getIntent();
         toolbar = getToolBar();
         weatherLayout = bindingView.weatherLayout;
         degreeText = bindingView.now.degreeText;
@@ -210,22 +210,11 @@ public class WeatherActivity extends BaseActivity<ActivityWeatherBinding> implem
         navigationView.inflateHeaderView(R.layout.nav_header);
         navigationView.inflateMenu(R.menu.nav_menu);
         navigationView.setNavigationItemSelectedListener(this);
-        initMenu();
         swipeRefresh.setOnRefreshListener(this);
         swipeRefresh.setColorSchemeResources(R.color.Blue);
         fab.setOnClickListener(this);
         fab.setBackgroundResource(android.R.color.transparent);
         SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(this);
-        String weatherString = prefs.getString("weather", null);
-        if (intent.hasExtra("weather_id")) {
-            mWeatherId = intent.getStringExtra("weather_id");
-            weatherLayout.setVisibility(View.INVISIBLE);
-            requestWeather(mWeatherId);
-        } else if (weatherString != null) {
-            Weather currentWeather = Utility.handleWeatherResponse(weatherString);
-            mWeatherId = currentWeather.basic.weatherId;
-            showWeatherInfo(currentWeather);
-        }
         String bingPic = prefs.getString("bing_pic", null);
         if (bingPic != null) {
             Glide.with(this).load(bingPic).into(getRootPic());
@@ -237,18 +226,29 @@ public class WeatherActivity extends BaseActivity<ActivityWeatherBinding> implem
 
     private void initMenu() {
         WeatherInfo weather = DataSupport.where("isCurrent = ?", "1").findFirst(WeatherInfo.class);
-        List<WeatherInfo> weatherList = DataSupport.findAll(WeatherInfo.class);
+        List<WeatherInfo> weatherList = DataSupport.where("isCurrent = ?", "0").find(WeatherInfo.class);
         if (weather != null) {
             navigationView.getMenu().clear();
             navigationView.getMenu().add(R.id.choose_city, 0, 0, weather.getCityName()).setIcon(R.drawable.city);
-            for (int i = 0, j = 1; i < weatherList.size(); i++, j++) {
-                if (weatherList.get(i).getIsCurrent()) {
-                    j--;
-                } else {
-                    navigationView.getMenu().add(R.id.choose_city, j, j, weatherList.get(i).getCityName()).setIcon(R.drawable.city);
-                }
+            for (int i = 1; i < weatherList.size() + 1; i++) {
+                navigationView.getMenu().add(R.id.choose_city, i, i, weatherList.get(i-1).getCityName()).setIcon(R.drawable.city);
             }
         }
+    }
+
+    private void initWeather() {
+        SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(this);
+        String weatherString = prefs.getString("weather", null);
+        if (intent.hasExtra("weather_id")) {
+            mWeatherId = intent.getStringExtra("weather_id");
+            weatherLayout.setVisibility(View.INVISIBLE);
+            requestWeather(mWeatherId);
+        } else if (weatherString != null) {
+            Weather currentWeather = Utility.handleWeatherResponse(weatherString);
+            mWeatherId = currentWeather.basic.weatherId;
+            showWeatherInfo(currentWeather);
+        }
+        initMenu();
     }
 
     public void requestWeather(final String weatherId) {
@@ -269,6 +269,8 @@ public class WeatherActivity extends BaseActivity<ActivityWeatherBinding> implem
                         currentWeather = new WeatherInfo();
                         if (!DataSupport.isExist(WeatherInfo.class)) {
                             currentWeather.setIsCurrent(true);
+                        } else {
+                            currentWeather.setIsCurrent(false);
                         }
                         currentWeather.setWeatherId(weather.basic.weatherId);
                     }
@@ -338,7 +340,7 @@ public class WeatherActivity extends BaseActivity<ActivityWeatherBinding> implem
             itemHourInfoItemBinding = DataBindingUtil.inflate(LayoutInflater.from(this), R.layout.item_hour_info_item, hourInfoLayout, false);
             TextView hourDateText = itemHourInfoItemBinding.hourDataText;
             ImageView hourWeatherImg = itemHourInfoItemBinding.hourWeatherImg;
-            TextView hourinfoText = itemHourInfoItemBinding.hourInfoText;
+            TextView hourInfoText = itemHourInfoItemBinding.hourInfoText;
             TextView hourHum = itemHourInfoItemBinding.hourHum;
             TextView hourPop = itemHourInfoItemBinding.hourPop;
             TextView hourPres = itemHourInfoItemBinding.hourPres;
@@ -346,7 +348,7 @@ public class WeatherActivity extends BaseActivity<ActivityWeatherBinding> implem
             TextView hourDir = itemHourInfoItemBinding.hourDir;
             TextView hourSpd = itemHourInfoItemBinding.hourSpd;
             hourDateText.setText("时间：" + hourly.date);
-            hourinfoText.setText(hourly.more1.info);
+            hourInfoText.setText(hourly.more1.info);
             weatherImgInfo(hourly.more1.info, hourWeatherImg);
             hourHum.setText("相对湿度：" + hourly.hum + "%");
             hourPop.setText("降水概率：" + hourly.pop + "%");
@@ -479,7 +481,6 @@ public class WeatherActivity extends BaseActivity<ActivityWeatherBinding> implem
                     navigationView.getMenu().clear();
                     initMenu();
                     onRefresh();
-                    Utility.updateUserData();
                 }
                 break;
         }
@@ -857,7 +858,7 @@ public class WeatherActivity extends BaseActivity<ActivityWeatherBinding> implem
             case "极端降雨":
                 Glide.with(this).load(list.get(27)).into(img);
                 break;
-            case "细雨":
+            case "毛毛雨/细雨":
                 Glide.with(this).load(list.get(28)).into(img);
                 break;
             case "暴雨":

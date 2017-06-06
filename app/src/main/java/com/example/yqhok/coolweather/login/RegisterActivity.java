@@ -152,7 +152,7 @@ public class RegisterActivity extends BaseActivity<ActivityRegisterBinding> impl
         switch (v.getId()) {
             case R.id.confirm:
                 if (isNetworkAvailable) {
-                    if (strUserName.length() < 5 || strUserName.length() > 11) {
+                    if (strUserName == null || strUserName.length() < 5 || strUserName.length() > 11) {
                         Toast.makeText(this, "用户名不合法", Toast.LENGTH_SHORT).show();
                         return;
                     }

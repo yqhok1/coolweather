@@ -74,8 +74,8 @@ public class SettingTimeUpdateService extends Service {
                         .setContentTitle("CoolWeather")
                         .setContentText(weather.getCityName() + ":" + weather.getInfo() + " 最低" + weather.getMin() + "℃,最高" + weather.getMax() + "℃")
                         .setWhen(System.currentTimeMillis())
-                        .setSmallIcon(R.mipmap.ic_launcher)
-                        .setLargeIcon(BitmapFactory.decodeResource(getResources(), R.mipmap.ic_launcher))
+                        .setSmallIcon(R.mipmap.logo)
+                        .setLargeIcon(BitmapFactory.decodeResource(getResources(), R.mipmap.logo))
                         .setContentIntent(pi)
                         .setAutoCancel(true)
                         .build();
