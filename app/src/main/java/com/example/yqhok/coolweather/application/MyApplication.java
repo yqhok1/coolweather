@@ -20,7 +20,6 @@ public class MyApplication extends LitePalApplication {
         context = getApplicationContext();
         LitePalApplication.initialize(context);
         AVOSCloud.initialize(this, "ny1OrJPEwlsKYp8b4OlER0KR-gzGzoHsz", "o5SHIkdU2SOCMoxlhKLiQxmw");
-        AVOSCloud.setDebugLogEnabled(true);
     }
 
     public static Context getContext() {

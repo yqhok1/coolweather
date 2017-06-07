@@ -27,7 +27,6 @@ import com.example.yqhok.coolweather.base.BaseActivity;
 import com.example.yqhok.coolweather.databinding.ActivityHomeBinding;
 import com.example.yqhok.coolweather.login.RegisterActivity;
 import com.example.yqhok.coolweather.util.HttpUtil;
-import com.example.yqhok.coolweather.util.Utility;
 
 import java.io.IOException;
 
@@ -103,9 +102,6 @@ public class HomeActivity extends BaseActivity<ActivityHomeBinding> implements V
         AVUser user = AVUser.getCurrentUser();
         if (user != null) {
             if (user.get("currentCityId") != null) {
-                Utility.LoadDataTask task = new Utility.LoadDataTask();
-                task.execute();
-                while (!task.isFinished) ;
                 WeatherActivity.start(HomeActivity.this);
                 HomeActivity.this.finish();
             } else {
@@ -168,6 +164,7 @@ public class HomeActivity extends BaseActivity<ActivityHomeBinding> implements V
                         dialog.show();
                     } else {
                         RegisterActivity.start(this);
+                        HomeActivity.this.finish();
                     }
                 } else {
                     Toast.makeText(this, "当前无网络连接", Toast.LENGTH_SHORT).show();
@@ -178,6 +175,7 @@ public class HomeActivity extends BaseActivity<ActivityHomeBinding> implements V
                     Intent intent = new Intent(this, ChooseAreaActivity.class);
                     intent.putExtra("flag", "HomeActivity");
                     startActivity(intent);
+                    HomeActivity.this.finish();
                     break;
                 } else {
                     Toast.makeText(this, "当前无网络连接", Toast.LENGTH_SHORT).show();
